@@ -859,7 +859,7 @@ wish to left align your text}
 \newcommand{\crest}[1]{\renewcommand{\@crest}{#1}}
 
 % Submission Text
-\newcommand{\submissiontext}{This dissertation is submitted for the degree of }
+\newcommand{\submissiontext}{This thesis is submitted for the degree of }
 
 
 % keywords (These keywords will appear in the PDF meta-information
