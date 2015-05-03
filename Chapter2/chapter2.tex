@@ -1,0 +1,217 @@
+%*******************************************************************************
+%****************************** Second Chapter *********************************
+%*******************************************************************************
+
+\chapter{Data Stream Model(10 pages)}
+
+\ifpdf
+    \graphicspath{{Chapter2/Figs/Raster/}{Chapter2/Figs/PDF/}{Chapter2/Figs/}}
+\else
+    \graphicspath{{Chapter2/Figs/Vector/}{Chapter2/Figs/}}
+\fi
+
+% Time
+% Tuple
+% Data Stream
+
+\subsection*{Order}
+Ordering is rather important in Distributed system, specially Stream Processing System in particular. 
+
+In traditional model, there are a single program, one process, one memory space running on one CPU. Programs are written to be executed in an ordered fashion in queue:  staring from the beginning, and then going  toward the last. In distributed system, programs run in many machines across the network but try to reserve the order of the result. One of easiest way to define "correctness" is to say "it works like it would on a single machine". And that usually means that a) we run the same operations and b) that we run them in the same order - even if there are multiple machines. \citep{Mikito:2014}
+
+In theory, they are defined 2 types of orders: total order and partial order. 
+
+\begin{defi}
+ Paritial order is a binary relation $\leq$ over a set $P$ which is reflexive, anti-symmetric and transitive, i.e., which satisfies for all $a$, $b$ and $c$ in $S$ (wiki):
+ 
+ \begin{itemize}
+	 \item $a \leq a$ (reflexivity)
+	\item  if $a \leq b$ and $b \leq a$ then $a = b$ (antisymmetry) 
+	\item if $a \leq b$ and $b \leq c$ then $a \leq c$  (transitivity)
+\end{itemize}
+\end{defi}
+
+\begin{defi}
+ Total order is a binary relation ``$\leq$'' over a set $S$ which is anti-symmetric and transitive and total. Therefore, total order is a partial order with totality
+ 
+ \begin{itemize}
+	 \item $a \leq b$ or $b \leq a$  (totality)
+\end{itemize}
+\end{defi}
+
+Total order ``<'' is strict on a set $S$ if and only if $(S, <)$ has no non-comparable pairs:
+\begin{equation}
+ \forall x, y \in S \Rightarrow  x < y \cup y < x 
+\end{equation} 
+
+In a totally ordered set, every two elements are comparable whereas in a partial ordered set, some pairs of elements are incomparable and hence we do not have the exact order of every item.
+
+The natural state in a distributed system is partial order. Neither the network nor independent nodes make any guarantees about relative order; but at each node, you can observe a local order.
+
+In streaming processing, one may discretize a stream into a discrete stream of windows. Therefore, we need to specify the order of elements to define which elements should be inserted into a given window. Furthermore, data stream involve the temporal order and the positional order \citep{Petit:2012} in stream. 
+
+The temporal order is induced by the timestamp of items in a stream. Using the value of timestamp, one can determine whether something happen chronologically before something else. Nevertheless, if some items happen simultaneously, they will have the same timestamp, then it may not be strict. For instance, there are two items with the same timestamp but system is required to take one only, the chosen is non-deterministic between two. Therefore, we may require a strict order.
+
+The positional is a strict order induced by the position of item in stream. Two items  may have the same timestamp but one may arrive before the other so that they have different positional orders. The positional order can be defined by arrival order or id of item regardless of explicit timestamp. 
+
+
+//TODO:The temporal order: Order. When I say that time is a source of order, what I mean is that:
+
+we can attach timestamps to unordered events to order them
+we can use timestamps to enforce a specific ordering of operations or the delivery of messages (for example, by delaying an operation if it arrives out of order)
+we can use the value of a timestamp to determine whether something happened chronologically before something else.
+
+\subsection*{Time}
+\textbf{Time Domain} The time domain $\mathbb{T}$ is a discrete, total ordered, countably infinite set of time instants $t \in \mathbb{T}$. We assume that $\mathbb{T}$ is bounded in the past , but not necessarily in the future. For the sake of simplicity, we will assume that the time domain is the domain of non-negative long integer ($\mathbb{T} = \mathbb{N}$) {0,1,2,3,..}\citep{Dindar:2013} and totally ordered. 
+
+2 type of times: system time $t^{sys}$ (implicit) and application time $t^{app}$ (explicit). These both take values from the time domain $\mathbb{T}$, but carry two different meaning. 
+
+\textbf{Application Timestamps} In many case, each item in stream contains an explicit source-assigned timestamp itself. In other words, the timestamp attribued will be a part of the stream schema. Consider  a common log format for web application which contains a timestamp specifying when the action is taken place. 
+A log line record user named \textit{pablo} to get an image
+\begin{verbatim}
+216.58.209.174 user-identifier pablo [10/Oct/2000:13:55:36 -0700] \\
+"GET /image.gif HTTP/1.0" 200 1234
+\end{verbatim}
+Sequence number attribute could represent a timestamp instead.
+
+\textbf{System Timestamps} If the item arrives at the system are not equipped with a timestamp, the system assigns a timestamp to each tuple, by default using the system’s local clock. While this process generates a raw stream with system timestamps that can be processed like a regular raw stream with application timestamps, the user should be aware that application time and system time are not necessarily synchronized. \citep{Kramer:2009}. As we mentions above, time domain is total ordered in local machine , but partial ordered across the system because of possible postpone on processing or asynchronous timestamp at different node.
+Moreover, since system timestamp is assigned implicitly by system , one may not notice it presence on schema.
+
+Multiple items may have the same application timestamps but they will not arrive in the same order. Therefore, system will assign the different unique system timestamp based on their arrival. Sytem then can believe in the system timestamp as a strict total ordered basis for reasoning about arrival items to perform processing. For example, another log from different users arrive at system:
+\begin{verbatim}
+219.53.210.143 user-identifier fabio [10/Oct/2000:13:55:36 -0700] \\
+"GET /image.gif HTTP/1.0" 200 1432
+\end{verbatim}
+However, it might arrive after the first log for user \textit{pablo} then system would response \textit{pablo}'s first, instead of \textit{fabio}'s request.
+
+\textbf{Note}: more on Timestamp in Streams \citep{Babcock:2002} page 13
+
+\subsection*{Tuple}
+A tuple is a finite sequence of atomic values. Each tuple can be defined by a Schema corresponding to a composite type. Tuple can represend a relational tuple , a event or a record of sensor data and so on. \citep{Arasu:2006:CCQ}. For instance, the log format in previous example follow a schema
+\begin{verbatim}
+<SourceIP, IdentityType, user, timestamp, action, response, packageSize >
+\end{verbatim}
+
+A data tuple is the fundamental, or atomic data item, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value.\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consits of a set of (Atribute x Value) pairs such as $(SourceIP, 219.53.210.143)$
+
+
+
+\section{Stream Model}
+Based on time and tuple domain, basically, CQL \citep{Arasu:2006:CCQ} defines a data stream as
+\begin{defi}
+	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $<s,t> \in \mathbb{S}$, where $s$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
+\end{defi}
+
+There are several stream definitions based on the execution model of systems. On the previous definition, a timestamp attribute can be an non-strict total ordered application timestamp so that system may not rely on it to order the coming tuples to react on them. For this reason, stream can contain an extra physical identifier  $\varphi$ \citep{Petit:2010} such as increment tuple id to specify its order. The tuple with smaller id mean that they arrive and should be processed before the tuples with bigger id. Another way to identify the order of a tuple item is to separate the concept of application and system timestamp. In SECRET model \citep{Botan:2010}, each stream item is composed of a tuple for event contents , an application timestamp, a system timestamp, and a batch-id value. The idea of batch-id is critical to SECRET system we do not mention in the thesis.
+In short, in practice, we assume that elements of a stream are totally ordered by the system timestamp and physical identifier.
+
+In Apache Flink, for the simplicity, stream with timestamp function $f: \mathbb{TP} \rightarrow \mathbb{T}$ mapping a tuple to its application timestamp value.
+
+Stream $s:<v>$ extends to $s:<v, t_{app}, t_{sys}>$, with $t_{app} = f(v)$ , $t_{app} \in \mathbb{T}$, $t_{sys} \in \mathbb{T}$
+
+//TODO Example: 
+
+ 
+\subsection*{Data Stream Properties} 
+Data Stream may have the following properties \citep{Golab:2010}:
+\begin{itemize}
+	\item They are considered as sequences of records, ordered by arrival time or by another ordered attributed such as generation time which is explicitly specified in schema, that arrive for processing over time instead of being available a priori. Totally order by time. 
+	\item They are emitted by a variety of external sources. Therefore, the system has no control over the arrival order or data rate, either within a stream or across multiple streams
+	\item They are produced continually and, therefore, have unbounded, or at least unknown, length. Thus, a DSMS may not know if or when the stream "ends". We may set a time-out waiting for new event. Exceeding the time-out, the stream considerably ends. 
+	\item Typically, big volume of data arrives at very high speed so that data need to process on the fly. Once an element from a data stream model has been processed it is discarded or archived. Stream elements cannot be retrieved, unless it is explicitly stored in storage or memory, which typically is small relative to the size of the data stream. \citep{Babcock:2002}
+	
+\end{itemize}
+
+
+\subsection*{Stream Representations}
+We distinguish 2 kinds of streams: \textit{base stream}(source stream) and \textit{derived stream}. Base stream stream is produced by the sources whereas derived stream is produced by continuous queries and their operators\citep{Arasu:2006:CCQ}. For example, \citep{Golab:2010} page 17
+
+
+In practice, base stream are almost always append-only , mean that previously arrived stream elements are never modified. However, derived stream may or may not be append-only . For example, \cite{Golab:2010}{page 18}
+
+Logical stream ?  \citep{Kramer:2009}
+
+Physical stream ?  \citep{Kramer:2009}
+
+
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=0.5\textwidth]{logicalPhysicalDataFlow}
+\caption[Minion]{Stream Processing in Action. Henrique Andrade}
+\label{fig:streamRepresent}
+\end{figure}
+
+   
+\subsection*{Signals[Option]}    \citep{Golab:2010} 
+Data streams often describe underlying “signals”. There are 4 ways in which a data stream can represent a signal
+\begin{itemize}
+	\item	aggregate model
+    \item	cash register model
+    \item 	turnstile model
+    \item	reset model
+\end{itemize}
+    
+    
+\section{Stream Window}
+
+Why do we need window?
+
+It is often infeasible to maintain the entire history of the input data.
+
+
+\citep{Henrique:2014} a window over streaming data can be created, buffering individual tuples. Windows can be built according to a multitude of parameters that define what to buffer, resulting in many window variations. These variations differ in their policies with respect to evicting old data that should no longer be buffered, as well as in when to process the data that is already in the window.
+
+
+Many stateful stream processing operators are designed to work on windows of tuples, making it a fundamental concept in stream processing. Therefore, a stream processing language must have rich windowing semantics to support the large diversity in how SPAs can consume data on a continuous basis.
+
+Windows are defined with respect to a timestamp or sequence number attribute representing  a tuple's arrival time.
+
+
+
+\subsection*{Window} \cite{Dindar:2013}
+A \textbf{Window} $W$ over a stream $\mathbb{S}$ is a finite subset of $\mathbb{S}$ \cite{Dindar:2013}
+
+A \textbf{Time-based Window} $W = [o,c)$ over a stream $\mathbb{S}$ os a finite subset of $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $o \leq s.t^{sys} <c$ \cite{Dindar:2013}
+
+\textbf{Window size and slide}  \citep{Dindar:2013}
+
+
+
+\subsection*{Window specification}
+
+Paper : Window Specification over Data Stream
+
+From the system’s point of view, it is infeasible to store an entire stream. From the user’s point of view, recently arrived data may be more useful. This motivates the use of windows to restrict the scope of continuous queries. Windows may be classified according the following criteria. Window may be classified according the following criteria:
+
+\subsection{Direction of movement}: fixed window, sliding window
+
+Fixed starting and ending points define a fixed window. Moving starting and ending points (either forward or backward) creates a sliding window. The starting and ending points typically slide in the same direction, although it is possible for both to slide outwards, starting from a common position (creating an expanding window), or for both to slide inwards, starting from fixed, positions (creating a contracting window). One fixed point and one moving point define a landmark window. Usually, the starting point is fixed, and the ending point moves forward in time. There are a total of nine possibilities as the beginning and ending points may independently be fixed, moving forward or moving backward.
+
+\subsection{Definition of contents} time-based, count-based/tuple-based, partitioned windows, predicate window
+
+Logical or time-based windows are defined in terms of a time interval, e.g., a time-based sliding window may maintain the last ten minutes of data. Physical (also known as count-based or tuple-based ) windows are defined in terms of the number of tuples, e.g., a count-based sliding window may store the last 1000 tuples. When using count-based windowsinquerieswithaGROUP BYcondition,itmaybeusefultomaintainseparatewindows of equal size for each group, say, 1000 tuples each, rather than a single window of 1000 tuples; these are referred to as partitioned windows [Arasu et al., 2006]. The most general type is a predicate window [Ghanem et al., 2006], in which an arbitrary logical predicate (or SQL query) specifies the contents. Predicate windows are analogous to materialized views. For example, consider an on-line auction that produces three types of tuples for each item being sold: a “begin” tuple, zero or more “bid” tuples, followed by an “end” tuple that is generated when the item has been sold, presumably to the highest bidder. Assume that each tuple contains a timestamp, an item id, a type (being, bid or end), and other information such as the bid amount. A possible predicate window over this auction stream keeps track of all items that have not yet been sold. New items enter the window when their “begin” tuples appear; sold items “fall out” of the window when their “end” tuples appear.
+
+\subsection{Frequency of movement} jumping window, mixed jumping window, tumbling window
+\end{enumerate}
+
+By default, a time-based window is updated at every time tick, and a count-based window is updated when a new tuple arrives. A jumping window is updated every k ticks or after every kth arrival. Note that a count-based window may be updated periodically, and a time-based window may be updated after some number of new tuples have arrived; these are referred to as mixed jumping windows [Ma et al., 2005]. If k is equal to the window size, then the result is a series of non-overlapping tumbling windows [Abadi et al., 2003].
+In practice, tumbling windows, such as the one-minute windows in query Q1 from Sec- tion 2.1.1, are popular due to the simplicity of their implementation—at the end of each window, the query resets its state and starts over. Forward-sliding windows (time-based and count-based) are also appealing due to their intuitive semantics, especially with joins and aggregation, as we will discuss below. However, sliding windows are more difficult to implement than tumbling windows; over time, a continuous query must insert new tuples into a window and remove expired tuples that have fallen out of the window range.
+
+
+(check Sliding Window Query Processing over Data Stream pages 25)
+
+
+
+
+The notion of sliding windows requires at least an ordering on data stream elements. In many cases, the arrival orders of the elements suffices as an \"implicit timestamp\" attached to each data element. However, sometimes it is preferable to user \"explicit timestamp\" provided as part of data stream. Formally, we say that a data stream consists of a set of (tuple, timestamp) pairs. Timestamp attribute could be a traditional timestamp or it could be a sequence number - all that is required is that it come from a totally ordered domain with a distance metric. The ordering induced by the timestamp is used when selecting the data elements making up a sliding window. 
+
+
+\textbf{Notes}: in CQL tuple-based sliding window may be non-deterministic - and therefore may not be appropriate - when timestamp are not unique
+
+\textbf{Notes}: Streambase: tuple-at-a-time
+
+\textbf{Notes}: Tuple relational calculus by Edgar F. Codd
+
+\textbf{Notes}: \href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
+

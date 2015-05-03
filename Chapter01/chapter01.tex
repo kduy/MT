@@ -10,9 +10,9 @@
 \chapter{Getting started}  %Title of the First Chapter
 
 \ifpdf
-    \graphicspath{{Chapter1/Figs/Raster/}{Chapter1/Figs/PDF/}{Chapter1/Figs/}}
+    \graphicspath{{Chapter01/Figs/Raster/}{Chapter01/Figs/PDF/}{Chapter01/Figs/}}
 \else
-    \graphicspath{{Chapter1/Figs/Vector/}{Chapter1/Figs/}}
+    \graphicspath{{Chapter01/Figs/Vector/}{Chapter01/Figs/}}
 \fi
 
 
@@ -44,9 +44,14 @@ known as the \textbf{energy-mass-momentum} relation as an in-line equation.
 A {\em \LaTeX{} class file}\index{\LaTeX{} class file@LaTeX class file} is a file, which holds style information for a particular \LaTeX{}.
 
 
-\begin{align}
-CIF: \hspace*{5mm}F_0^j(a) = \frac{1}{2\pi \iota} \oint_{\gamma} \frac{F_0^j(z)}{z - a} dz
-\end{align}
+%\begin{align}
+%CIF: \hspace*{5mm}F_0^j(a) = \frac{1}{2\pi \iota} \oint_{\gamma} \frac{F_0^j(z)}{z - a} dz
+%\end{align}
+
+
+\begin{equation}
+	y_t = a_1y_{t-1}+a_2y_{t-2}+...+a_py_{t-p}+\epsilon_t
+\end{equation}
 
 \nomenclature[z-cif]{$CIF$}{Cauchy's Integral Formula}                                % first letter Z is for Acronyms 
 \nomenclature[a-F]{$F$}{complex function}                                                   % first letter A is for Roman symbols

@@ -17,7 +17,7 @@
 \usepackage{amssymb,latexsym}
 \usepackage{graphicx}
 \newtheorem{defi}{Definition}[chapter]
-
+\newcommand{\newln}{\\&\quad\quad{}}
 % ******************************************************************************
 % ******************************* Class Options ********************************
 % *********************** See README for more details **************************
@@ -115,9 +115,11 @@
 % Useful option to review a particular chapter or to send it to supervisior.
 % To use choose `chapter' option in the document class
 
-\ifdefineChapter
- \includeonly{Chapter3/chapter3}
-\fi
+
+% DUY
+%\ifdefineChapter
+% \includeonly{Chapter3/chapter3}
+%\fi
 
 % ******************************** Front Matter ********************************
 \begin{document}
@@ -128,23 +130,23 @@
   \maketitle
 \end{titlepage}
 
-
-\include{Dedication/dedication}
-% * <duyvk142@gmail.com> 2015-04-13T09:38:42.091Z:
+%-------my uncomment-----------
+%\include{Dedication/dedication}
+%\include{Declaration/declaration}
+%\include{Acknowledgement/acknowledgement}
+%\include{Abstract/abstract}
 %
-% 
-%
-\include{Declaration/declaration}
-\include{Acknowledgement/acknowledgement}
-\include{Abstract/abstract}
 
 % *********************** Adding TOC and List of Figures ***********************
 
-\tableofcontents
+%\tableofcontents
 
-\listoffigures
+%\listoffigures
 
-\listoftables
+%\listoftables
+
+
+%------end my uncomment---------
 
 % \printnomencl[space] space can be set as 2em between symbol and description
 %\printnomencl[3em]
@@ -154,13 +156,14 @@
 % ******************************** Main Matter *********************************
 \mainmatter
 
+\include{Chapter1/chapter1}
+\include{Chapter2/chapter2}
+\include{Chapter3/chapter3}
+\include{Chapter4/chapter4}
+
 \include{Chapter01/chapter01}
 \include{Chapter02/chapter02}
 \include{Chapter03/chapter03}
-%\include{Chapter4/chapter4}
-%\include{Chapter5/chapter5}
-%\include{Chapter6/chapter6}
-%\include{Chapter7/chapter7}
 
 
 
