@@ -22,15 +22,40 @@ Since the first commercial project of Complex Event Processing launched by Bell 
 	\end{verbatim}
 	
 	\item Capability heterogeneity:
-	Those engines also provide different set of query types and operations based on which functions they are capable of. For examples, \textit{Streambase} support pattern matching on stream, whereas CQL does not.
+	Those engines also provide different set of query types and operations based on which functions they are capable of. For examples, \textit{Streambase} support pattern matching on stream, whereas STREAM does not.
 	
-	\item Execution Model: Below the language level, hidden from application layers, each stream processing engine has its own underlying execution model. With the same data stream but different model produce different output which varies based on the different window construction, evaluation and so on.
+	\item Execution Model: Below the language level, hidden from application layers, each stream processing engine has its own underlying execution model. With the same data stream but different model produce different output which varies based on the differences on tuple ordering,  window construction, evaluation and so on. We are going to focus on the differences between several existing execution models below.
 	
 	
 \end{enumerate}
-
-time-driven / tuple-driven / batch-driven
  
+We have learned that there are at least three different execution models:
+\begin{itemize}
+	\item \textbf{Time-driven} execution model, followed by CQL, Oracle CEP. In the model, each tuple have a timestamp. Timestamp induce the total order of tuples on stream, but not a strict order. Or more specifically, there is no ordering between tuples with identical timestamps. These tuples are consider as simulanenous tuples. It is problematic when we select a window of last 10 tuples but more than 10 simultaneous tuples arrived at a given time instant. In this case, there is no different between those tuples, the system will select only 10 out of all in a non-deterministic way.
+	
+	// Draw:
+	
+	\item \textbf{Tuple-driven} execution model, followed by StreamBase, Apache Flink. In this model, tuples may have an application timestamp attribute on its schema. Some of timestamp value might be identical but they are completely distinguished in stream. There exists a strict total order in stream based on their arrival order. There are several ways to represent tuple order in stream. StreamBase system assigns an incremental internal rank to tuples to arriving tuples. It ensures that the tuple with lower rank with be processed before tuples with higher rank. In Apache Flink, we implicitly use system timestamp   $t_{sys}$ at which system receives the tuple. Since system timestamp are strictly totally ordered, it is simply suitable for Flink execution model. Several other works propose to use tuple Id\citep{Dinda:2013} or a physical identifier\citep{Petit:2010} instead. 
+	//Draw: 
+	
+	\item \textbf{Batch-driven} execution model, followed by Coral8, mentioned in SECRET\citep{Botan:2010} descriptive model
+\end{itemize}. In this model, each tuple is assigned an batch-id. Every tuple which belong to a batch must have the same timestamp, but 2 separate tuple with the identical timestamp may belong to two different batches. As we can see, batch-driven model is in between of tuple-driven and time-driven model. Assuming that at a given application timestamp $\tau$, the system receives 5 tuples ${<v_1,\tau>,<v_2,\tau>,<v_3,\tau>,<v_4,\tau>,<v_5,\tau>}$. Time-driven model treats them as simultaneous tuples with no difference. Tuple-driven considers them as 5 concrete tuples in strict order. And batch-driven model may divide them into 2 batches ${<v_1,\tau>,<v_2,\tau>,<v_3,\tau>}$, ${<v_4,\tau>,<v_5,\tau>}$ depending on window specification.
+
+Extend the examples from \citep{Dinda:2013} with Flink implementation
+
+Example 1: differences in window constructions
+
+Example 2: differences in window evaluations
+
+Example 3: differences in processing granularity
+
+Check another examples at \citep{Jain:2008}
+
+Example 1: Window state change
+
+tuple: each tuple arrival cause a system to react
+time: the progress of tapp cause a system to react
+batch:  where either a new batch arrival or the progress of tapp cause a system to react
 
 \section{Policy-based Window Construction}
 
@@ -50,6 +75,8 @@ Trigger : when to start firing the function (end of window)
 startTime: end of the first Window
 
 \section{The execution semantic}
+
+
 
 
 
