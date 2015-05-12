@@ -10,21 +10,13 @@
     \graphicspath{{Chapter4/Figs/Vector/}{Chapter4/Figs/}}
 \fi
 
+In the streaming literature, query language model a stream as a representation for an infinite append-only relation. The append-only stream model effects the following limitations\citep{Ghanem:2008}
+\begin{itemize}
+\item It limits the applicability of the language since the append-only models cannot represent streams from the various domain( e.g., the update streams or streams that represent concatenation of the states of a fixed size relation).
+\item The append-only stream model limits the types of queries that the language can express since only non-blocking queries can produce append-only streams as output
+\item The semantics of query composition in the append-only stream model is complex and the meaning of the composed queries is difficult to understand.
+\end{itemize}
 
-- Window alone come with Trigger
+Query \citep{Babcok:2002}
 
-- Window + Every:
-
-+ Window : Eviction
-
-+ Every: Trigger 
-
-
-Eviction: number of events to keep (start of window)
-
-Trigger : when to start firing the function (end of window)
-
-
-startTime: end of the first Window
-
-
+Window Specification over Data Streams.pdf

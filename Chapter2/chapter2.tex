@@ -98,6 +98,8 @@ A data tuple is the fundamental, or atomic data item, embedded in a data stream 
 
 
 \section{Stream Model}
+
+
 Based on time and tuple domain, basically, CQL \citep{Arasu:2006:CCQ} defines a data stream as
 \begin{defi}
 	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $<s,t> \in \mathbb{S}$, where $s$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
@@ -131,6 +133,9 @@ With the partial function $f$ to extract application timestamp from tuple: $f: \
 
  
 \subsection*{Data Stream Properties} 
+In the data stream model, some of all the input data that are to be operated are not available for random access from disk or memory, but rather arrive as one or more continuous data streams. Data streams differ from the conventional stored relation model in several ways\citep{Babcock:2002}
+
+
 Data Stream may have the following properties \citep{Golab:2010}:
 \begin{itemize}
 	\item They are considered as sequences of records, ordered by arrival time or by another ordered attributed such as generation time which is explicitly specified in schema, that arrive for processing over time instead of being available a priori. Totally order by time. 
@@ -198,64 +203,87 @@ A logical stream from source go straight through an aggregate and a filter opera
 
    
 \subsection*{Signals[Option]}    \citep{Golab:2010} 
-Data streams often describe underlying “signals”. There are 4 ways in which a data stream can represent a signal
-\begin{itemize}
-	\item	aggregate model
-    \item	cash register model
-    \item 	turnstile model
-    \item	reset model
-\end{itemize}
     
     
-\section{Stream Window}
+\section{Stream Windows}
 
 Why do we need window?
 
-It is often infeasible to maintain the entire history of the input data.
-
-
-\citep{Henrique:2014} a window over streaming data can be created, buffering individual tuples. Windows can be built according to a multitude of parameters that define what to buffer, resulting in many window variations. These variations differ in their policies with respect to evicting old data that should no longer be buffered, as well as in when to process the data that is already in the window.
-
+From the system's point of view, it is often infeasible to maintain the entire history of the input data stream. Because data stream is running infinitely, we do not know when it ends. It nearly impossible to query over the entire stream with some operators such as sum, average. Accumulating a tuple attribute for entire stream may results to a very big value causing  buffer overflow. From the user's point of view, recently data may be insight and more useful to make a data-driven decision. Those reasons motivated the user of windows to restrict to the scope of continuous queries. 
 
 Many stateful stream processing operators are designed to work on windows of tuples, making it a fundamental concept in stream processing. Therefore, a stream processing language must have rich windowing semantics to support the large diversity in how SPAs can consume data on a continuous basis.
 
-Windows are defined with respect to a timestamp or sequence number attribute representing  a tuple's arrival time.
+\begin{defi}
+A \textbf{Window} $W$ over a stream $\mathbb{S}$ is a finite subset of stream $\mathbb{S}$ \cite{Dindar:2013}
+\end{defi}
+
+
+A window over streaming data can be created, buffering a continuous sequence of individual tuples. However, the size of window is a finite number so that system must decide what and how to buffer data based on the window specification. 
+
+The specification consists of several parameters :
+\begin{enumerate}
+\item an optional partitioning clause, which partitions data in window into several groups. Query on window will be taken place regard for each group, instead of the whole window
+\item a window size, that may be expressed either as the number of tuples included in it or as the temporal interval spanning its contents
+\item an optional window slide, the distance between the starts of 2 consecutive window (i.e., waiting 2 seconds or 5 data elements before starting a new window). This crucial property determine whether and in what way a window change state over time.
+\item an optional filtering predicate, keeping only elements that satisfy the predicate.
+\end{enumerate}
+
+//Example : 
+
+
+Windows can be construct according to (window specification) that define what to buffer, resulting in many window variations. These variations differ in their policies with respect to evicting old data that should no longer be buffered, as well as in when to process the data that is already in the window.\citep{Henrique:2014}
 
 
 
-\subsection*{Window} \cite{Dindar:2013}
-A \textbf{Window} $W$ over a stream $\mathbb{S}$ is a finite subset of $\mathbb{S}$ \cite{Dindar:2013}
+Window may be classified according the following criteria:
 
-A \textbf{Time-based Window} $W = [o,c)$ over a stream $\mathbb{S}$ os a finite subset of $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $o \leq s.t^{sys} <c$ \cite{Dindar:2013}
+\subsection{Direction of movement}
+Window can fixed or sliding along the stream.
+\begin{itemize}
 
-\textbf{Window size and slide}  \citep{Dindar:2013}
+\item Fixed Window:  has both upper-bound and lower-bound fixed. Therefore the window is evaluated only once and capture a constant portion information of stream
 
+Example: //TODO
 
+\item Sliding window: the width of the window may be fixed in term of logical unit (i.e., time interval units) or physical unit (i.e., tuple count in window). However, the boundaries of windows change overtime along the stream.
 
-\subsection*{Window specification}
+Example: //TODO
 
-Paper : Window Specification over Data Stream
+\item Tumbling window: a particular sliding window where the boundaries move is equal to the window's width. Windows are disjoint.
 
-From the system’s point of view, it is infeasible to store an entire stream. From the user’s point of view, recently arrived data may be more useful. This motivates the use of windows to restrict the scope of continuous queries. Windows may be classified according the following criteria. Window may be classified according the following criteria:
+Example: //TODO
 
-\subsection{Direction of movement}: fixed window, sliding window
+\item Landmark Window: One of the bounds remains  anchored at a specific system timestamp. The other edge of the window is allowed to move freely. Usually, the lower-bound is fixed , and the upper-bound shifted forward in pace with time progression
 
-Fixed starting and ending points define a fixed window. Moving starting and ending points (either forward or backward) creates a sliding window. The starting and ending points typically slide in the same direction, although it is possible for both to slide outwards, starting from a common position (creating an expanding window), or for both to slide inwards, starting from fixed, positions (creating a contracting window). One fixed point and one moving point define a landmark window. Usually, the starting point is fixed, and the ending point moves forward in time. There are a total of nine possibilities as the beginning and ending points may independently be fixed, moving forward or moving backward.
+\end{itemize}
+
 
 \subsection{Definition of contents} time-based, count-based/tuple-based, partitioned windows, predicate window
 
-Logical or time-based windows are defined in terms of a time interval, e.g., a time-based sliding window may maintain the last ten minutes of data. Physical (also known as count-based or tuple-based ) windows are defined in terms of the number of tuples, e.g., a count-based sliding window may store the last 1000 tuples. When using count-based windows in queries with a GROUP BYcondition,it may be useful to maintain separate windows of equal size for each group, say, 1000 tuples each, rather than a single window of 1000 tuples; these are referred to as partitioned windows [Arasu et al., 2006]. The most general type is a predicate window [Ghanem et al., 2006], in which an arbitrary logical predicate (or SQL query) specifies the contents. Predicate windows are analogous to materialized views. For example, consider an on-line auction that produces three types of tuples for each item being sold: a “begin” tuple, zero or more “bid” tuples, followed by an “end” tuple that is generated when the item has been sold, presumably to the highest bidder. Assume that each tuple contains a timestamp, an item id, a type (being, bid or end), and other information such as the bid amount. A possible predicate window over this auction stream keeps track of all items that have not yet been sold. New items enter the window when their “begin” tuples appear; sold items “fall out” of the window when their “end” tuples appear.
+\begin{itemize}
+	\item Logical or time-based windows are defined in terms of time interval, e.g., a time-base sliding window may maintain the the last one minutes of data.
+	
+	\item Physical(also known as count-based or tuple-based) windows are defined in terms of the number of tuples, e.g., a count-based window sliding window may store the last arrived 100 tuples.
+	
+	\item Delta-based windows are defined in terms of a delta function and a threshold value. The function calculates a delta between 2 elements such as absolute distance or Euclidean distance between 2 data elements. In delta-based windows, the delta between the first element and any of the rest must not be larger than the threshold, respectively.For example, assuming that window satisfies the euclidean distance between the first and other element is not higher than 10. Currently arrival data point will join the window if the delta between it and the first elements of window is equal or less than threshold. Otherwise, the window is closed and emitted; the currently arrival data point trigger a new window. Formally, a delta windows contains $n$ ordered elements $a_1, a_2,...,a_n$ so that every elements $a_k$ with $k \in [1,n]$ must satisfies
+	\begin{equation}
+		\Delta(a_1,a_k) \leq \phi
+	\end{equation}
 
-\subsection{Frequency of movement} jumping window, mixed jumping window, tumbling window
+	\item Partitioned Windows contain only the elements  in the same group which differentiates itself from the other groups  by the value of a grouping attributes (subset of its schema), e.g., a partitioned window store last 100 elements with the same value of (\textit{StockSymbol}, \textit{Exchange}). Thus, several  substreams are derived logically from the real stream, each one corresponding to an existing combinations of value$<a_1,a_2,...,a_k>$ on the grouping attributes. Each group maintains a separate window buffer to capture arrival events and emit when satisfies window specification.
+	
+	
+	\item Predicate window \citep{Ghanem:2008} , in which an arbitrary logical predicate specifies the contents. Only data point that satisfies the predicate will join the window, otherwise it is discarded. e.g.,predicate window maintain last 100 transactions have more than 100.000 units in terms of \textit{volume}.
+	
+\end{itemize}
 
+%\subsection{Frequency of movement[Optional]} jumping window, mixed jumping window, tumbling window
 
-By default, a time-based window is updated at every time tick, and a count-based window is updated when a new tuple arrives. A jumping window is updated every k ticks or after every kth arrival. Note that a count-based window may be updated periodically, and a time-based window may be updated after some number of new tuples have arrived; these are referred to as mixed jumping windows [Ma et al., 2005]. If k is equal to the window size, then the result is a series of non-overlapping tumbling windows [Abadi et al., 2003].
-In practice, tumbling windows, such as the one-minute windows in query Q1 from Sec- tion 2.1.1, are popular due to the simplicity of their implementation—at the end of each window, the query resets its state and starts over. Forward-sliding windows (time-based and count-based) are also appealing due to their intuitive semantics, especially with joins and aggregation, as we will discuss below. However, sliding windows are more difficult to implement than tumbling windows; over time, a continuous query must insert new tuples into a window and remove expired tuples that have fallen out of the window range.
+%By default, a time-based window is updated at every time tick, and a count-based window is updated when a new tuple arrives. A jumping window is updated every k ticks or after every kth arrival. Note that a count-based window may be updated periodically, and a time-based window may be updated after some number of new tuples have arrived; these are referred to as mixed jumping windows [Ma et al., 2005]. If k is equal to the window size, then the result is a series of non-overlapping tumbling windows [Abadi et al., 2003].
+%In practice, tumbling windows, such as the one-minute windows in query Q1 from Sec- tion 2.1.1, are popular due to the simplicity of their implementation—at the end of each window, the query resets its state and starts over. Forward-sliding windows (time-based and count-based) are also appealing due to their intuitive semantics, especially with joins and aggregation, as we will discuss below. However, sliding windows are more difficult to implement than tumbling windows; over time, a continuous query must insert new tuples into a window and remove expired tuples that have fallen out of the window range.
 
 
 (check Sliding Window Query Processing over Data Stream pages 25)
-
-
 
 
 The notion of sliding windows requires at least an ordering on data stream elements. In many cases, the arrival orders of the elements suffices as an \"implicit timestamp\" attached to each data element. However, sometimes it is preferable to user \"explicit timestamp\" provided as part of data stream. Formally, we say that a data stream consists of a set of (tuple, timestamp) pairs. Timestamp attribute could be a traditional timestamp or it could be a sequence number - all that is required is that it come from a totally ordered domain with a distance metric. The ordering induced by the timestamp is used when selecting the data elements making up a sliding window. 

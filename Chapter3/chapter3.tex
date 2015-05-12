@@ -10,18 +10,46 @@
     \graphicspath{{Chapter3/Figs/Vector/}{Chapter3/Figs/}}
 \fi
 
-\section{Heterogeneity}\citep{Dindar:2013}
-\begin{itemize}
-	\item Syntax
-	\item Capability
-	\item Execution Model
-\end{itemize}
+\section{Heterogeneity}
+Since the first commercial project of Complex Event Processing launched by Bell Labs in 1998 with its "Sunrise Project", we have seen the fast growing of many stream processing frameworks. However, there is a huge degree of heterogeneity across these frameworks in various forms\citep{Dindar:2013}
+
+\begin{enumerate}
+
+	\item Syntax: Although the ISO/IEC 9075 is published standard to defines the complete syntax and operations in SQL language as a whole, there is no standard language for stream processing. Different stream processing engines use different syntax to depict the same function. For example,every 5 seconds, a window captures all event last 10 seconds. 
+	\begin{verbatim}
+	CQL: 	[RANGE 10 seconds SLIDE 5 second ] 
+	Flink: 	[SIZE 10 sec EVERY 5 sec]
+	\end{verbatim}
+	
+	\item Capability heterogeneity:
+	Those engines also provide different set of query types and operations based on which functions they are capable of. For examples, \textit{Streambase} support pattern matching on stream, whereas CQL does not.
+	
+	\item Execution Model: Below the language level, hidden from application layers, each stream processing engine has its own underlying execution model. With the same data stream but different model produce different output which varies based on the different window construction, evaluation and so on.
+	
+	
+\end{enumerate}
 
 time-driven / tuple-driven / batch-driven
  
-\subsection*{Order in stream}
-total order vs partial order
 
+\section{Policy-based Window Construction}
+
+- Window alone come with Trigger
+
+- Window + Every:
+
++ Window : Eviction
+
++ Every: Trigger 
+
+
+Eviction: number of events to keep (start of window)
+
+Trigger : when to start firing the function (end of window)
+
+startTime: end of the first Window
+
+\section{The execution semantic}
 
 
 
