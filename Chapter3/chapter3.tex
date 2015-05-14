@@ -57,7 +57,7 @@ tuple: each tuple arrival cause a system to react
 time: the progress of tapp cause a system to react
 batch:  where either a new batch arrival or the progress of tapp cause a system to react
 
-\section{Policy-based Window Construction}
+\section{Policy-based Window Semantics}
 
 - Window alone come with Trigger
 
@@ -68,11 +68,40 @@ batch:  where either a new batch arrival or the progress of tapp cause a system 
 + Every: Trigger 
 
 
-Eviction: number of events to keep (start of window)
+Eviction: number of events to keep (end of window)
 
-Trigger : when to start firing the function (end of window)
+Trigger : when to start firing the function (start of window)
 
 startTime: end of the first Window
+
+
+Flink constructs windows based on parameters in specification. Currently Flink does not support Predicate Window so that two of most critical parameters are to notify when system should trigger new windows (indicating the lower bound of window) and when system must end the window (indicating the upper bound of window) and emit it to window stream. For that purpose, Flink implements a mechanism called \textit{"Policy-based windowing"}. It is a highly flexible way to specify stream descretization. It has two independent policies corresponding to open and close window: Trigger and Eviction Policy.
+To demonstrate the concepts of two policies, let's consider the scenario with \textit{StockTick} stream: check every 10 minutes the total transaction volume of all transaction last 30 minutes. In other words, in every 10 minutes create a new window to cover all the transactions in last 30 minutes. The syntax in Fink:
+
+\begin{verbatim}
+StockTick.window(Time.of(30, MINUTES))
+		 .every(Time.of(10, MINUTES)).sum(Quantity)
+\end{verbatim}
+
+\begin{enumerate}
+
+\item Eviction Policy: define the length of a window. The length is passed in to \textit{window(...)} function. It could be the time interval, number of tuples and delta function with threshold (in case of delta window).
+We formalize the concept of window due to its size
+
+\begin{defi}
+A time-based window $W_{t} = (l,u,\omega)$ over a stream $S$ is a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l < s.t \leq u$. The length of window in time unit is $\omega = u-l$
+\end{defi}
+Notice that in a time-based window, $s.t$ can be tuple's application or system timestamp depending on query. There are maybe many simultaneous tuple with identical $t_{app}$. However, there is at least one arriving tuple at a given $t_{sys}$. The second point is that $W_t$ open at $t = l$, it does not include tuple at this time instant.
+
+\begin{defi}
+A count-based window $W_{c} = (l,u,N)$ over a stream $S$ is also a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l \leq s.t_{sys} \leq u$. The length of window is the number of tuples in interval time $[l, u]$, i.e., $|{s \in \mathbb{S}(t_{sys}): l \leq s.t_{sys} \leq u}| = N$
+\end{defi}
+The count-based window $W_{c}$ is independent from application timestamp $t_app$. It is related to system timstamp $t_{sys}$ which indicate tuple's order in stream. 
+
+
+\item Trigger Policy: In general, it defines window slide or the distance between 2 consecutive windows. On above example , trigger policy states that from beginning, system should trigger a new window every 10 minutes.
+\end{enumerate}
+
 
 \section{The execution semantic}
 
