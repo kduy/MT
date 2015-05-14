@@ -59,21 +59,6 @@ batch:  where either a new batch arrival or the progress of tapp cause a system 
 
 \section{Policy-based Window Semantics}
 
-- Window alone come with Trigger
-
-- Window + Every:
-
-+ Window : Eviction
-
-+ Every: Trigger 
-
-
-Eviction: number of events to keep (end of window)
-
-Trigger : when to start firing the function (start of window)
-
-startTime: end of the first Window
-
 
 Flink constructs windows based on parameters in specification. Currently Flink does not support Predicate Window so that two of most critical parameters are to notify when system should trigger new windows (indicating the lower bound of window) and when system must end the window (indicating the upper bound of window) and emit it to window stream. For that purpose, Flink implements a mechanism called \textit{"Policy-based windowing"}. It is a highly flexible way to specify stream descretization. It has two independent policies corresponding to open and close window: Trigger and Eviction Policy.
 To demonstrate the concepts of two policies, let's consider the scenario with \textit{StockTick} stream: check every 10 minutes the total transaction volume of all transaction last 30 minutes. In other words, in every 10 minutes create a new window to cover all the transactions in last 30 minutes. The syntax in Fink:
@@ -89,19 +74,41 @@ StockTick.window(Time.of(30, MINUTES))
 We formalize the concept of window due to its size
 
 \begin{defi}
-A time-based window $W_{t} = (l,u,\omega)$ over a stream $S$ is a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l < s.t \leq u$. The length of window in time unit is $\omega = u-l$
+A time-based window $W_{t} = (l,u,\omega)$ over a stream $S$ is a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l , u, \omega \in \mathbb{T}$ and$l < s.t \leq u$. The length of window in time unit is $\omega = u-l$
 \end{defi}
 Notice that in a time-based window, $s.t$ can be tuple's application or system timestamp depending on query. There are maybe many simultaneous tuple with identical $t_{app}$. However, there is at least one arriving tuple at a given $t_{sys}$. The second point is that $W_t$ open at $t = l$, it does not include tuple at this time instant.
 
 \begin{defi}
-A count-based window $W_{c} = (l,u,N)$ over a stream $S$ is also a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l \leq s.t_{sys} \leq u$. The length of window is the number of tuples in interval time $[l, u]$, i.e., $|{s \in \mathbb{S}(t_{sys}): l \leq s.t_{sys} \leq u}| = N$
+A count-based window $W_{c} = (l,u,n)$ over a stream $S$ is also a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l,u \in \mathbb{T}$, $\omega \in \mathbb{N}$ and $l \leq s.t_{sys} \leq u$. The length of window is the number of tuples in interval time $[l, u]$, i.e., $|n {s \in \mathbb{S}(t_{sys}): l < s.t_{sys} \leq u}|$
 \end{defi}
-The count-based window $W_{c}$ is independent from application timestamp $t_app$. It is related to system timstamp $t_{sys}$ which indicate tuple's order in stream. 
+The count-based window $W_{c}$ is independent from application timestamp $t_{app}$. It is related to system timstamp $t_{sys}$ which indicate tuple's order in stream. 
 
 
-\item Trigger Policy: In general, it defines window slide or the distance between 2 consecutive windows. On above example , trigger policy states that from beginning, system should trigger a new window every 10 minutes.
+\item Trigger Policy: In general, it defines window slide or the distance between 2 consecutive windows. On above example , trigger policy states that from beginning, system must trigger a new window every 10 minutes. No other window would be triggered within this 10 minutes. 
+
+Suppose that we have 2 consecutive windows $W^1 = (l_1, u_1, \_)$ and $W^2 = (l_2, u_2, \_)$  where $l_1 < l_2$. There is no window $W^1 = (l_3, u_3, \_)$ such that $l_1< l_3 < l_2$.
+\begin{itemize}
+
+\item If $W_1$ and $W_2$ are time-based windows, a slide $\beta = l_2 - l_1$.  
+\item If $W_1$ and $W_2$ are count-based windows, a slide $e = |{s \in \mathbb{S}(t_{sys}): l_1 < s.t_{sys} \leq l_2}| $ 
+
+\end{itemize}
+
 \end{enumerate}
 
+If the correlation between window size and slide size  conforms to the movement type of windows.
+\begin{itemize}
+\item Sliding window: $\omega > \beta$ or $n > e$
+\item Tumbling window: $\omega = \beta$ or $n = e$
+\item Jumping window: $\omega < \beta$ or $n < e$
+\end{itemize}
+
+However, Flink allow to mix between time-based trigger policy with count-based eviction policy and vice versa. For example,
+calculate sum of quantities of last 100 transactions every 1 hour.
+\begin{verbatim}
+StockTick.window(Count.of(100))
+		 .every(Time.of(1, HOURS)).sum(Quantity)
+\end{verbatim}
 
 \section{The execution semantic}
 

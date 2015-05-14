@@ -90,7 +90,7 @@ However, it might arrive after the first log for user \textit{pablo} then system
 A tuple is a finite sequence of atomic values. Each tuple can be defined by a Schema corresponding to a composite type. Tuple can represend a relational tuple , a event or a record of sensor data and so on. \citep{Arasu:2006:CCQ}. For instance, the log format in previous example follow a schema:
 
 \begin{verbatim}
-<SourceIP, IdentityType, user, timestamp, action, response, packageSize >
+<SourceIP, IdentityType, user, timestamp, action, response, packageSize>
 \end{verbatim}
 
 A data tuple is the fundamental, or atomic data item, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consits of a set of (Atribute x Value) pairs such as $(SourceIP, 219.53.210.143)$
@@ -121,7 +121,7 @@ f: (TIME, TEMP) \rightarrow TIME + 3600*1000
 \end{equation}
 
 
-I propose the definition of Stream $s:<v>$ extends to $s:<v, t_{app}, t_{sys}>$, with $t_{app} = f(v)$ , $t_{app} \in \mathbb{T}$, $t_{sys} \in \mathbb{T}$
+I propose the definition of Stream $s:<v>$ extends to $s:<v, t_{app}, t_{sys}>$, with $t_{app} = f(v)$, $t_{app} \in \mathbb{T}$, $t_{sys} \in \mathbb{T}$
 
 For further analysis on execution model in Apache Flink, I propose a extend definition of a data stream as:
 
@@ -197,7 +197,7 @@ A logical stream from source go straight through an aggregate and a filter opera
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{logicalPhysicalDataFlow}
-\caption[Minion]{Stream Processing in Action. Henrique Andrade\citep{Henrique:2013}}
+\caption[Minion]{Extract data parallelism from a logical DFG by replicating operators and segmenting their internal state in the corresponding physical DFG. The disk icon \citep{Henrique:2013}}
 \label{fig:streamRepresent}
 \end{figure}
 
