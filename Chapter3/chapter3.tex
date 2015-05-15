@@ -250,54 +250,32 @@ The first step, before processing a new arrived tuple, check if a current window
     \EndIf
     
     \If{$\textrm{window is time-based}$}
-    		\State $ evict_t \gets size_t (\textrm{window.append(newTuple)}) - \omega_t$
+    		\State $ evict_t \gets size_t (\textrm{wb.append(newTuple)}) - \omega_t$
     
-    \If{$evict_t > 0$}
-    		\State $ \textrm{lastEvictedTimestamp} \gets wb.first.t + evict_t - 1$
-    		\ForAll{element $e$ in window buffer $wb$}
-    			\If {$e.t \leq \textrm{lastEvictedTimestamp}$}
-    				\State $wb.remove(e)$
-    			\EndIf
-    		\EndFor
+    		\If{$evict_t > 0$}
+    			\State $ \textrm{lastEvictedTimestamp} \gets wb.first.t + evict_t - 1$
+    			\ForAll{element $e$ in window buffer $wb$}
+    				\If {$e.t \leq \textrm{lastEvictedTimestamp}$}
+    					\State $wb.remove(e)$
+    				\EndIf
+    			\EndFor
+    		\EndIf
+    \Else
+    		\State $evict_c \gets size_c(\textrm{wb.append(newTuple)}) - \omega_c$
+    		\If{$evict_c > 0$}
+    			\For {$i \gets 1, evict_c$}
+    				\State $wb.removeFirst()$
+    			\EndFor
+    		\EndIf
     \EndIf
-    \EndIf
     
+   	\State $wb \gets wb.append(input)$
     
+
     
-    
-    
-    
-    \State $H \gets \textrm{new Associative Array}$
-    \State $\textrm{userid} \gets \textrm{c.userId}$
-    \State $\textrm{message} \gets \textrm{c.message}$
-    \ForAll{$\textrm{emotional regular expression}$ $p[i]$}
-    \If{$\textrm{message matches expression}$ $p[i]$}
-    \State $H[i] \gets 1$
-    \Else 
-    \State $H[i] \gets 0$
-    \EndIf
-    \EndFor
-    \State $\textsc{Emit}(\textrm{term }userId, \textrm{array } H)$
     \EndProcedure
     %\EndFunction
   \end{algorithmic}
 
-
-
-
-
-
-
-  \begin{algorithmic}[2]
-    \Function{Reducer}{}
-    \Procedure{Reduce}{$\textrm{term }userId, \textrm{counts }[  H_1, H_2, \ldots ]$}
-    \State $sums \gets \textrm{new Array}$
-    \ForAll{$ \textrm{array}H \in  \textrm{lists of arrays }[  H_1, H_2, \ldots ]$}
-    \State $sums[i] \gets sums[i] + H[i]$
-    \EndFor
-    \State $\textsc{Emit}(\textrm{term }userId, \textrm{array }sums)$
-    \EndProcedure
-    \EndFunction
-  \end{algorithmic}
 \end{algorithm}
 
