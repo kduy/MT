@@ -40,7 +40,7 @@ Assuming that we has stream $\mathbb{S}$
 	
 
 	
-Consider a query which continuously recal the last arrival tuple i.e., we select tuple-based window with size of 1 tuple. In the time-based execution model,  the state of a window changes as timestamp progress. Window get re-evaluated only when timestamp change. At $t=1$ or $t=3$, there is only 1 arrival tuple, new 1-tuple-size window will open , pick the tuple then close. Thus the stream derives window $W_1: \{(1,1)\}$ and $W_3: \{(100,3)\}$. On other hand, at $t=2$, there are 3 new arrival tuples. New window $W_2$ opens and be able to pick 1 tuple only. Since these 3 tuples arrive simultaneously, they will have the same timestamp and thus no any temporal differences between them.
+Consider a query which continuously recall the last arrival tuple i.e., we select tuple-based window with size of 1 tuple. In the time-based execution model,  the state of a window changes as timestamp progress. Window get re-evaluated only when timestamp change. At $t=1$ or $t=3$, there is only 1 arrival tuple, new 1-tuple-size window will open , pick the tuple then close. Thus the stream derives window $W_1: \{(1,1)\}$ and $W_3: \{(100,3)\}$. On other hand, at $t=2$, there are 3 new arrival tuples. New window $W_2$ opens and be able to pick 1 tuple only. Since these 3 tuples arrive simultaneously, they will have the same timestamp and thus no any temporal differences between them.
 Engine randomly pick one of them for window $W_2$. In short, window $W_2$ contains one of following options: $(10,2)$ or $(20,2)$. The derived stream will be one of the streams:
 \begin{verbatim}
 (1,1),(10,2), (100,3) or (1,1),(20,2), (100,3)
@@ -55,9 +55,9 @@ Engine randomly pick one of them for window $W_2$. In short, window $W_2$ contai
 	
 	\item \textbf{Tuple-driven} execution model, followed by StreamBase, Apache Flink. In this model, tuples may have an application timestamp attribute on its schema. Some of timestamp values might be identical but tuples themselves are completely distinguished in stream. There exists a strict total order in stream based on their arrival order. 
 	
-	There are several ways to represent tuple order in stream. StreamBase system assigns an incremental internal rank to tuples to arriving tuples. It ensures that the tuple with lower rank with be processed before tuples with higher rank. In Apache Flink, we implicitly use system timestamp   $t_{sys}$ at which system receives the tuple. Since system timestamp are strictly totally ordered, it is simply suitable for Flink execution model. Several other works propose to use tuple Id \citep{Dindar:2013} or a physical identifier\citep{Petit:2010} instead. 
+	There are several ways to represent tuple order in stream. StreamBase system assigns an incremental internal rank to tuples to arriving tuples. It ensures that the tuple with lower rank with be processed before tuples with higher rank. In Apache Flink, we implicitly use system timestamp   $t_{sys}$ at which system receives the tuple. Since system timestamp are strictly totally ordered, it is simply suitable for Flink execution model. Several other works propose to use tuple Id \citep{Dindar:2013} or a physical identifier\citep{Petit:2010} instead. 	
 	
-	In tuple-drive execution model, each tuple arrival cause a system to react, instead of each application timestamp progress. In previous example, tuple $(10,2)$ and $(20,2)$ has the same application timestampe but system will open a new 1-tuple-size window for each of them. Therefore,assuming that tuple $(10,2)$ arrives before tuple $(20,2)$, the derived stream will be exact as 
+	In tuple-drive execution model, each tuple arrival cause a system to react, instead of each application timestamp progress. In previous example, tuple $(10,2)$ and $(20,2)$ has the same application timestamp but system will open a new 1-tuple-size window for each of them. Therefore,assuming that tuple $(10,2)$ arrives before tuple $(20,2)$, the derived stream will be exact as 
 	\begin{verbatim}
 		(1,1),(10,2),(20,2), (100,3)
 	\end{verbatim}
@@ -231,7 +231,7 @@ $size_c(wb) = wb.length()$
 
 \begin{algorithm}
 \caption{Process new arrived tuple}
-\label{algorithm:newTuple}
+\label{algorithm:processNewTuple}
 The first step, before processing a new arrived tuple, check if a current window buffer should be emit. If yes, copy the current window buffer to a window object and put to Windowed Stream. The second step, calculating which tuples should be evicted if the current window buffer appends new arrived tuple. There are two separate case for time-based and tuple-based window. The third step, evicting those tuples and appending new arrived tuple.
 
 
@@ -239,20 +239,22 @@ The first step, before processing a new arrived tuple, check if a current window
 \algrenewcommand\algorithmicprocedure{\textbf{method}}
   \begin{algorithmic}[1]
   	\Require {$wb$: the current window buffer}
-  	\Require{$\omega_t$: size of window in time interval }
-  	\Require{$\omega_c$: size of window in tuple count }
+  	
+  			{$\omega_t$: size of window in time interval }
+  			
+  			{$\omega_c$: size of window in tuple count }
     %\Function{Mapper}{}
     \Procedure{processNewTuple}{$\textrm{newTuple }: IN$}
     
-    \If{$\textsc{notifyTrigger}(newTuple)$}
+    \If{$\textsc{notifyTrigger}(newTuple)$} \Comment{ trigger new window if full}
     		\State $\textrm{window} \gets \textrm{wb}$
-    		\State $\textsc{Emit}(\textrm{window})$
+    		\State $\textsc{Emit}(\textrm{window})$ \Comment {emit to Windowed stream}
     \EndIf
     
     \If{$\textrm{window is time-based}$}
     		\State $ evict_t \gets size_t (\textrm{wb.append(newTuple)}) - \omega_t$
     
-    		\If{$evict_t > 0$}
+    		\If{$evict_t > 0$} \Comment {remove old tuples}
     			\State $ \textrm{lastEvictedTimestamp} \gets wb.first.t + evict_t - 1$
     			\ForAll{element $e$ in window buffer $wb$}
     				\If {$e.t \leq \textrm{lastEvictedTimestamp}$}
@@ -260,22 +262,63 @@ The first step, before processing a new arrived tuple, check if a current window
     				\EndIf
     			\EndFor
     		\EndIf
-    \Else
+    \Else \Comment{window is count-based}
     		\State $evict_c \gets size_c(\textrm{wb.append(newTuple)}) - \omega_c$
-    		\If{$evict_c > 0$}
+    		\If{$evict_c > 0$} \Comment {remove old tuples}
     			\For {$i \gets 1, evict_c$}
     				\State $wb.removeFirst()$
     			\EndFor
     		\EndIf
     \EndIf
     
-   	\State $wb \gets wb.append(input)$
+   	\State $wb \gets wb.append(newTuple)$ \Comment {add new tuple to current window buffer}
     
-
     
     \EndProcedure
     %\EndFunction
   \end{algorithmic}
+  
 
+
+
+
+\end{algorithm}
+
+
+\begin{algorithm}
+\caption{Trigger a new window if full }
+\label{algorithm:notifyTrigger}
+When a new tuple has arrive, system check whether the current window buffer reached the point where distance of 2 windows is equal to slide size or not. The new tuple is not really appended to buffer, use it for qualifying purpose only.
+\begin{algorithmic}[1]
+  	\Require {$\beta_c$: count-based slide size}
+  			{$\beta_t$: time-based slide size }
+  			{$lastUpperBound$: upper boundaries of previous window}
+    %\Function{Mapper}{}
+    \Procedure{notifyTrigger}{$\textrm{newTuple }: IN$}
+    
+   
+    
+    \If{$\textrm{window is time-based}$}
+    		\If{$\textrm{size_t} (\textrm{wb.append(newTuple)}) > \beta_t$}
+    			\State $\textrm{lastUpperBound} \gets \textrm{newTuple.t}$
+    			\State $\textrm{return true}$
+    		\Else
+    			\State$\textrm{return false}$
+    		\EndIf
+    
+    \Else \Comment{window is count-based}
+    		\If{$\textrm{counter} \geqslant \beta_c $}
+    			\State $\textrm{counter} \gets 1$
+    			\State $\textrm{return true}$
+    		\Else
+    			\State $\textrm{counter} \gets \textrm{counter} + 1$
+    			\State $\textrm{return false}$
+    		\EndIf
+    	\EndIf
+    
+    
+    \EndProcedure
+    %\EndFunction
+  \end{algorithmic}
 \end{algorithm}
 

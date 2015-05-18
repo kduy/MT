@@ -2,7 +2,7 @@
 %****************************** Second Chapter *********************************
 %*******************************************************************************
 
-\chapter{Data Stream Model(10 pages)}
+\chapter{Data Stream Model}
 
 \ifpdf
     \graphicspath{{Chapter2/Figs/Raster/}{Chapter2/Figs/PDF/}{Chapter2/Figs/}}
@@ -77,7 +77,7 @@ Sequence number attribute could represent a timestamp instead.
 \textbf{System Timestamps} Even if the item arrives at the system are not equipped with a timestamp, the system assigns a timestamp to each tuple, by default using the system’s local clock. While this process generates a raw stream with system timestamps that can be processed like a regular raw stream with application timestamps, the user should be aware that application time and system time are not necessarily synchronized\citep{Kramer:2009}. Since system timestamp is assigned implicitly by system , one may not notice it presence on schema. As we mentions above, time domain is total ordered in local machine , but partial ordered across the system because of possible postpone on processing or asynchronous timestamp at different node.
 
 
-Both application and system timestamp captures time information but they cary two different meanings. The former is related to the occurrence of the application event( when the event happens), whereas the latter is related to the occurrence of related system(when the corresponding event data arrive at system). Multiple items may have the same application timestamps but they will not arrive in the same order. Therefore, system will assign the different unique system timestamp based on their arrival. Sytem then can believe in the system timestamp as a strict total ordered basis for reasoning about arrival items to perform processing. For example, another log from different users arrive at system:
+Both application and system timestamp captures time information but they carry two different meanings. The former is related to the occurrence of the application event( when the event happens), whereas the latter is related to the occurrence of related system(when the corresponding event data arrive at system). Multiple items may have the same application timestamps but they will not arrive in the same order. Therefore, system will assign the different unique system timestamp based on their arrival. System then can believe in the system timestamp as a strict total ordered basis for reasoning about arrival items to perform processing. For example, another log from different users arrive at system:
 \begin{verbatim}
 219.53.210.143 user-identifier fabio [10/Oct/2000:13:55:36 -0700] \\
 "GET /image.gif HTTP/1.0" 200 1432
@@ -87,13 +87,13 @@ However, it might arrive after the first log for user \textit{pablo} then system
 \textbf{Note}: more on Timestamp in Streams \citep{Babcock:2002} page 13
 
 \subsection*{Tuple}
-A tuple is a finite sequence of atomic values. Each tuple can be defined by a Schema corresponding to a composite type. Tuple can represend a relational tuple , a event or a record of sensor data and so on. \citep{Arasu:2006:CCQ}. For instance, the log format in previous example follow a schema:
+A tuple is a finite sequence of atomic values. Each tuple can be defined by a Schema corresponding to a composite type. Tuple can represent a relational tuple , a event or a record of sensor data and so on. \citep{Arasu:2006:CCQ}. For instance, the log format in previous example follow a schema:
 
 \begin{verbatim}
 <SourceIP, IdentityType, user, timestamp, action, response, packageSize>
 \end{verbatim}
 
-A data tuple is the fundamental, or atomic data item, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consits of a set of (Atribute x Value) pairs such as $(SourceIP, 219.53.210.143)$
+A data tuple is the fundamental, or atomic data item, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consists of a set of (Attribute x Value) pairs such as $(SourceIP, 219.53.210.143)$
 
 
 
@@ -105,7 +105,7 @@ Based on time and tuple domain, basically, CQL \citep{Arasu:2006:CCQ} defines a 
 	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $<s,t> \in \mathbb{S}$, where $s$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
 \end{defi}
 
-There are several stream definitions varying based on the execution model of systems. On the previous definition, a timestamp attribute can be an non-strict total ordered application timestamp so that system may not rely on it to order the coming tuples to react on them. For this reason, stream can contain an extra physical identifier  $\varphi$ \citep{Petit:2010} such as increment tuple id to specify its order. The tuple with smaller id mean that they arrive and should be processed before the tuples with bigger id. Another way to identify the order of a tuple item is to separate the concept of application and system timestamp. In SECRET model \citep{Botan:2010}, each stream item is composed of a tuple for event contents , an application timestamp, a system timestamp, and a batch-id value. The idea of batch-id is critical to SECRET system we do not mention in the thesis.
+There are several stream definitions varying based on the execution model of systems. On the previous definition, a timestamp attribute can be an non-strict total ordered application timestamp so that system may not rely on it to order the coming tuples to react on them. For this reason, stream can contain an extra physical identifier  $\varphi$ \citep{Petit:2010} such as increment tuple id to specify its order. The tuple with smaller id mean that they arrive and should be processed before the tuples with bigger id. Another way to identify the order of a tuple item is to separate the concept of application and system timestamp. In SECRET model \citep{Dindar:2013}, each stream item is composed of a tuple for event contents , an application timestamp, a system timestamp, and a batch-id value. The idea of batch-id is critical to SECRET system we do not mention in the thesis.
 In short, in practice, we assume that elements of a stream are totally ordered by the system timestamp and physical identifier.
 
 In Apache Flink, for the flexibility, system accepts a user-defined timestamp function   $f: \mathbb{TP} \rightarrow \mathbb{T}$ to map a tuple to its application timestamp value. One of the most common scenario is that the function $f$ extract one attribute of Schema and consider it as timestamp value.
@@ -115,7 +115,7 @@ Consider the example of temperature sensors, the sensors feed a stream $S(TIME\ 
 f: (TIME, TEMP) \rightarrow SEC
 \end{equation}
 
-However, we may receive the stream from a different timezone. Thus, the application timestamp must be converted to the current timezone for the sake of data integration. For instance, one acquires the timestamp value (in milliseconds) in next timeszone.
+However, we may receive the stream from a different timezone. Thus, the application timestamp must be converted to the current timezone for the sake of data integration. For instance, one acquires the timestamp value (in milliseconds) in next timezone.
 \begin{equation}
 f: (TIME, TEMP) \rightarrow TIME + 3600*1000
 \end{equation}
