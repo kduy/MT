@@ -1,0 +1,96 @@
+\documentclass{article}
+\usepackage{syntax}
+
+\begin{document}
+
+
+
+\section{Data Definition Language (DDL)}
+\subsection{Create Schema}
+
+%\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
+
+\begin{grammar}
+
+<schema_statement> ::= CREATE SCHEMA <schema_ident> \\
+(<named_schema_ident>|<anonymous_schema>) \\
+  { }[EXTENDS <parent_schema_ident>]
+
+<anonymous_schema> ::= `(' typedField \{`,' typedField\}`)'
+
+<typedField> ::= <field_ident> <data_type>
+
+\end{grammar}
+	
+	
+
+
+
+
+\subsection{Create Stream}
+	
+					
+\begin{grammar}
+<Stream statement> ::= CREATE STREAM <schema_ident> \\		(<named_schema_ident>|<anonymous_schema> ) \\
+{ }[<source>]
+sub
+<source> ::= (AS <derived_source>) | ( SOURCE <raw_source>)
+
+<derived_source> ::=  <stream_ident>| <subSelect>
+
+<raw_source> ::= 
+				HOST `('<host>, <port>`)'
+					\alt FILE `('<file path>, <delimiter>`)'
+\end{grammar}
+
+
+\section{Data Manipulation Language (DML)}
+
+\subsection{Select}
+\begin{grammar}
+<select_statement> ::= SELECT <target_entry> \{, <target_entry>\}\\
+	FROM <stream_references> \\
+	WHERE <predicate> \\
+	GROUP BY <field_ident> \{,<field_ident>\} \\
+	INTO <stream_ident>
+	
+<stream_references> ::= <stream_refererence> [<join_clause>]
+
+<stream_reference> ::= (<stream_ident>| <subSelect>) [`['Window_specification`]']
+
+<join_clause> ::= CROSS JOIN <stream_reference>
+				\alt [INNER] JOIN <stream_reference>
+
+<window_specification> ::= 
+								SIZE <spec> \\
+								{ }[EVERY <spec>]\\
+								{ }[PARTITIONED BY <field_ident> \{,<field_ident>\}]
+
+<spec> ::= <int> ON <field_ident>
+			\alt <int> <time_unit>
+			\alt <int>
+\end{grammar}
+
+
+\subsection{Insert}
+
+\begin{grammar}
+<insert_statement> ::= INSERT INTO <stream_ident> [AS] 
+							(<stream_ident> | <subSelect>| <merge>)
+\end{grammar}
+
+
+\subsection{Merge}
+\begin{grammar}
+<merge_statement> ::= MERGE <stream_ident> `,' <stream_ident> {,<stream_ident>}
+\end{grammar}
+
+\subsection{Split}
+\begin{grammar}
+<split_statement> ::= ON <stream_ident> \\
+						<insert clause> \{, <insert clause>\}
+						
+<insert_clause> ::= INSERT INTO <stream_ident> \\SELECT <target_entry_list> WHERE <predicate>
+\end{grammar}
+\end{document}

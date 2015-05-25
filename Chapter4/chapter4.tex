@@ -28,7 +28,7 @@ Window Specification over Data Streams.pdf
 \begin{itemize}
 \item Stream-oriented Query Languages and Operators
 	\begin{itemize}
-		\item Language clousure
+		\item Language closure
 		\item Windowing
 		\item Correlation
 		\item Pattern Matching
@@ -38,16 +38,204 @@ Window Specification over Data Streams.pdf
 \item 
 \end{itemize}
 
-\section{Continuous Query Language}
-3. Query Formulation 
-4. Logical Operator Algebra
 
+\section{Continuous Query Language}
+
+
+\subsection{Data Type}
+
+
+\begin{table}[h]
+\caption{Data Type}
+\centering
+\label{table:nice_table}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||c|l|l||}
+\hline
+%\rowcolor[HTML]{ECF4FF} 
+%{\color[HTML]{ECF4FF} \textbf{Scala Type}} & {\color[HTML]{ECF4FF} \textbf{Flink Type}} & {\color[HTML]{ECF4FF} \textbf{Viewable as}} \\ \hline
+\textbf{Scala Type} &  \textbf{Flink Type} & \textbf{Convertable to} \\ \hline\hline
+                    String               &           STRING\_TYPE\_INFO                   &  \\ \hline
+                    Boolean				&           BOOLEAN\_TYPE\_INFO                  &   \\ \hline
+                   Char					&           CHAR\_TYPE\_INFO                       &  Byte, Short, Integer, Long, Double\\ \hline
+					Byte		           	&           BYTE\_TYPE\_INFO                     & Short, Integer, Long,Float, Double \\ \hline
+					Short				&           SHORT\_TYPE\_INFO                    & Integer, Long, Float, Double\\ \hline								
+					Int					&           INT\_TYPE\_INFO                      & Long, Float, Double\\ \hline
+					Long			 		&           LONG\_TYPE\_INFO                     & Float, Double \\ \hline								
+					Float				&           FLOAT\_TYPE\_INFO                    & Double \\ \hline
+					Double				&           DOUBLE\_TYPE\_INFO                   &   \\ \hline							
+	Datetime				&           DATE\_TYPE\_INFO                &        	\\ \hline           							           							           							           							           
+\end{tabular}
+\end{table}
+
+
+
+\section{Data Definition Language (DDL)}
+\subsection{Create Schema}
+
+%\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
+
+\begin{grammar}
+
+<schema statement> ::= CREATE SCHEMA <schema ident> \\
+(<named schema ident>|<anonymous schema>) \\
+  { }[EXTENDS <parent schema ident>]
+
+<anonymous schema> ::= `(' typedField \{`,' typedField\}`)'
+
+<typedField> ::= <field ident> <data type>
+
+\end{grammar}
+	
+	
+
+
+
+
+\subsection{Create Stream}
+	
+					
+\begin{grammar}
+<Stream statement> ::= CREATE STREAM <schema ident> \\		(<named schema ident>|<anonymous schema> ) \\
+{ }[<source>]
+sub
+<source> ::= (AS <derived source>) | ( SOURCE <raw source>)
+
+<derived source> ::=  <stream ident>| <subSelect>
+
+<raw source> ::= 
+				HOST `('<host>, <port>`)'
+					\alt FILE `('<file path>, <delimiter>`)'
+\end{grammar}
+
+
+\section{Data Manipulation Language (DML)}
+
+\subsection{Select}
+\begin{grammar}
+<select statement> ::= SELECT <target entry> \{, <target entry>\}\\
+	FROM <stream references> \\
+	WHERE <predicate> \\
+	GROUP BY <field ident> \{,<field ident>\} \\
+	INTO <stream ident>
+	
+<stream references> ::= <stream refererence> [<join clause>]
+
+<stream reference> ::= (<stream ident>| <subSelect>) [`['Window specification`]']
+
+<join clause> ::= CROSS JOIN <stream reference>
+				\alt [INNER] JOIN <stream reference>
+
+<window specification> ::= 
+								SIZE <spec> \\
+								{ }[EVERY <spec>]\\
+								{ }[PARTITIONED BY <field ident> \{,<field ident>\}]
+
+<spec> ::= <int> ON <field ident>
+			\alt <int> <time unit>
+			\alt <int>
+\end{grammar}
+
+
+\subsection{Insert}
+
+\begin{grammar}
+<insert statement> ::= INSERT INTO <stream ident> [AS] 
+							(<stream ident> | <subSelect>| <merge>)
+\end{grammar}
+
+
+\subsection{Merge}
+\begin{grammar}
+<merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
+\end{grammar}
+
+\subsection{Split}
+\begin{grammar}
+<split statement> ::= ON <stream ident> \\
+						<insert clause> \{, <insert clause>\}
+						
+<insert clause> ::= INSERT INTO <stream ident> \\SELECT <target entry list> WHERE <predicate>
+\end{grammar}
+
+\begin{verbatim}
+	on OrderEvent
+  insert into LargeOrders select orderId, customer where orderQty >= 100
+insert into MediumOrders select orderId, customer where orderQty between 20 and 100
+  insert into SmallOrders select orderId, customer where orderQty > 0
+\end{verbatim}
+
+
+\section{Operators}
+\begin{enumerate}
+
+\item Scala-based Operators
+	\begin{itemize}
+        \item Arithmetic
+        \item Logical
+        \item Comparison / Relational
+        \item Bitwise
+	\end{itemize}
+	
+ \item List and Range Operators
+ 	\begin{itemize}
+        \item In / Not in
+        \item Between
+        \item Null
+ 	\end{itemize}
+ \item String Operators
+ 	\begin{itemize}
+        \item Like
+        \item Regex
+ 	\end{itemize}
+ \item Function 
+ 	\begin{itemize}
+        \item Aggregate Func
+        \item Coversion Func
+       	\item Data and Time Func
+        \item String func
+ 	\end{itemize}
+
+\end{enumerate}
 Semantic and Implementation of Continuous Sliding window queries over data streams
 
 [thesis] CQL over data stream [BNF] alias
 
 
 \section{Continuous Query Semantics and Operators}
+
+\subsection*{Denotation Language}
+\subsection*{Lamda Calculus}
+
+\subsection{Abstract Syntax}
+
+
+\subsection{Domain}
+
+\subsection{Denotation Semantics}
+
+
+
+
+
+
+
+
+\subsection{Standard Operator}
+\begin{itemize}
+	\item filter $\sigma$
+	\item map $\mu$
+	\item grouping $\gamma$  
+	\item union $\bigcup$
+\end{itemize}
+
+\subsection{Window Operators}
+\begin{itemize}
+\item Time-based Window
+\item Count-based Window
+\item Partitioned Window
+\end{itemize}
 
 
 
