@@ -2,7 +2,7 @@
 %****************************** Second Chapter *********************************
 %*******************************************************************************
 
-\chapter{The execution semantic of Stream Processing in Flink (10 pages)}
+\chapter{The execution semantic of Flink Stream Processing}
 
 \ifpdf
     \graphicspath{{Chapter3/Figs/Raster/}{Chapter3/Figs/PDF/}{Chapter3/Figs/}}
@@ -48,7 +48,7 @@ Engine randomly pick one of them for window $W_2$. In short, window $W_2$ contai
 
 \begin{figure}[htbp!] 
 \centering    
-\includegraphics[width=0.5\textwidth]{time-driven}
+\includegraphics[width=0.7\textwidth]{time-driven}
 \caption{time-driven}
 \label{fig:time-driven}
 \end{figure}
@@ -64,7 +64,7 @@ Engine randomly pick one of them for window $W_2$. In short, window $W_2$ contai
 	
 	\begin{figure}[htbp!] 
 \centering    
-\includegraphics[width=0.5\textwidth]{tuple-driven}
+\includegraphics[width=0.7\textwidth]{tuple-driven}
 \caption{tuple-driven}
 \label{fig:tuple-driven}
 \end{figure}
@@ -73,11 +73,26 @@ Engine randomly pick one of them for window $W_2$. In short, window $W_2$ contai
 \end{itemize}. In this model, each tuple is assigned an batch-id. Every tuple which belong to a batch must have the same timestamp, but 2 separate tuple with the identical timestamp may belong to two different batches. As we can see, batch-driven model is in between of tuple-driven and time-driven model (Figure~\ref{fig:executionModel}). Assuming that at a given application timestamp $\tau$, the system receives 5 tuples ${<v_1,\tau>,<v_2,\tau>,<v_3,\tau>,<v_4,\tau>,<v_5,\tau>}$. Time-driven model treats them as simultaneous tuples with no difference. Tuple-driven considers them as 5 concrete tuples in strict order. And batch-driven model may divide them into 2 batches $\{<v_1,\tau>,<v_2,\tau>,<v_3,\tau>\}$, $\{<v_4,\tau>,<v_5,\tau>\}$ depending on window specification.
 
 
-	\begin{figure}[htbp!] 
-\centering    
-\includegraphics[width=1\textwidth]{executionModel}
-\caption{Execution Model}
-\label{fig:executionModel}
+
+\begin{figure}[htbp!] 
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{executionModel_a}
+    \caption{Tuple-driven}
+    \label{fig:TomJerry}   
+  \end{subfigure}             
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{executionModel_b}
+    \caption{Time-driven}
+    \label{fig:WallE}
+  \end{subfigure}             
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{executionModel_c}
+    \caption{Batch-driven}
+    \label{fig:Minnion}
+  \end{subfigure}
+  \caption{Execution models}
+  \label{fig:animations}
 \end{figure}
 
 
@@ -111,8 +126,8 @@ Flink produced a different result than Oracle and Coral8.
 In Oracle and Coral8, a new window is emitted for invoking the average operator only when the window content's change; whereas in Flink, it emits a new window every second as the sliding progress , even if the content does not change. The state of window is depicted on Figure ~\ref{fig:winEvaluation}
 \begin{figure}[htbp!] 
 \centering    
-\includegraphics[width=0.7\textwidth]{winEvaluation}
-\caption{Window State}
+\includegraphics[width=0.8\textwidth]{winEvaluation}
+\caption{Window Evaluation}
 \label{fig:winEvaluation}
 \end{figure}
 
@@ -433,3 +448,6 @@ $W=\{s:<v, \_, t_{sys}> \in \mathbb{S} \wedge t_{sys} \leq u_k \wedge  |\{<v,\_,
 
 \subsubsection*{In case of partitioned group within window}
 
+
+
+http://www.sqlstream.com/blog/2015/03/5-reasons-why-spark-streamings-batch-processing-of-data-streams-is-not-stream-processing/

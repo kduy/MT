@@ -2,7 +2,7 @@
 %****************************** Second Chapter *********************************
 %*******************************************************************************
 
-\chapter{FlinkCQL- queries over Data Stream}
+\chapter{FlinkCQL- Queries over Data Stream}
 
 \ifpdf
     \graphicspath{{Chapter4/Figs/Raster/}{Chapter4/Figs/PDF/}{Chapter4/Figs/}}
@@ -18,9 +18,16 @@ In the streaming literature, query language model a stream as a representation f
 \end{itemize}
 
 Query \citep{Babcock:2002} 
+Query : Smart Votex , page 2
 
 Window Specification over Data Streams.pdf
 [Stream] Evaluate CQL
+
+Designing\_Data\_Intensive\_Applications.pdf
+
+A declarative query language is attractive because it is typically more concise and easier to work with than an imperative API. But more importantly, it also hides implementation details of the database engine, which makes it possible for the database system to introduce performance improvements without requiring any changes to queries
+
+
 
 
 \section{Fundamental Features}
@@ -48,7 +55,7 @@ Window Specification over Data Streams.pdf
 \begin{table}[h]
 \caption{Data Type}
 \centering
-\label{table:nice_table}
+\label{table:Data Type}
 \setlength\extrarowheight{5pt}
 \begin{tabular}{||c|l|l||}
 \hline
@@ -70,8 +77,8 @@ Window Specification over Data Streams.pdf
 
 
 
-\section{Data Definition Language (DDL)}
-\subsection{Create Schema}
+\subsection{Data Definition Language (DDL)}
+\subsubsection{Create Schema}
 
 %\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 \setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
@@ -93,7 +100,7 @@ Window Specification over Data Streams.pdf
 
 
 
-\subsection{Create Stream}
+\subsubsection{Create Stream}
 	
 					
 \begin{grammar}
@@ -110,9 +117,9 @@ sub
 \end{grammar}
 
 
-\section{Data Manipulation Language (DML)}
+\subsection{Data Manipulation Language (DML)}
 
-\subsection{Select}
+\subsubsection{Select}
 \begin{grammar}
 <select statement> ::= SELECT <target entry> \{, <target entry>\}\\
 	FROM <stream references> \\
@@ -138,7 +145,7 @@ sub
 \end{grammar}
 
 
-\subsection{Insert}
+\subsubsection{Insert}
 
 \begin{grammar}
 <insert statement> ::= INSERT INTO <stream ident> [AS] 
@@ -146,12 +153,12 @@ sub
 \end{grammar}
 
 
-\subsection{Merge}
+\subsubsection{Merge}
 \begin{grammar}
 <merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
 \end{grammar}
 
-\subsection{Split}
+\subsubsection{Split}
 \begin{grammar}
 <split statement> ::= ON <stream ident> \\
 						<insert clause> \{, <insert clause>\}
@@ -167,7 +174,7 @@ insert into MediumOrders select orderId, customer where orderQty between 20 and 
 \end{verbatim}
 
 
-\section{Operators}
+\subsection{Operators}
 \begin{enumerate}
 
 \item Scala-based Operators
@@ -206,6 +213,8 @@ Semantic and Implementation of Continuous Sliding window queries over data strea
 
 \section{Continuous Query Semantics and Operators}
 Semantics of Data Streams and Operators
+
+\href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
 \subsection*{Denotation Language}
 \subsection*{Lamda Calculus}
 
