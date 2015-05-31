@@ -18,14 +18,83 @@ In the streaming literature, query language model a stream as a representation f
 \end{itemize}
 
 Query \citep{Babcock:2002} 
+
 Query : Smart Votex , page 2
 
 Window Specification over Data Streams.pdf
+
 [Stream] Evaluate CQL
 
 Designing\_Data\_Intensive\_Applications.pdf
 
-A declarative query language is attractive because it is typically more concise and easier to work with than an imperative API. But more importantly, it also hides implementation details of the database engine, which makes it possible for the database system to introduce performance improvements without requiring any changes to queries
+
+
+\subsection*{Query}
+
+A query is a request telling system \textbf{what} to do in order to retrieve or alter desired information stored or processed by system. For instances, asking ``How many products are sold today? ''. Queries over data stream and in a traditional DBMS have a lot in common; however, due to characteristic of continuousness in data stream, we may classify a query as one-time query or continuous query \citep{Terry:1992} \citep{Babcock:2002}. 
+\begin{itemize}
+	\item \textbf{One-time queries} are evaluated once over data set at a given time instant, and terminated after returning its result. This is also called \textit{passive query} \citep{SmartVotex:2011} since system require queries and passively waits for users to issue these queries before executing. 
+	\item \textbf{Continuous queries}, in contrast, get evaluated continually as new data arrives to the observed stream. System continuously delivery new results  over time according to the snapshot or state of data stream seen so far. Thus the output of queries is not a single result, but rather new streams of results for further operators if desired. Obviously, continuous queries really fit to user's requirements to observed data streams till its end. 
+\end{itemize}
+
+
+
+\subsection*{Query Language}
+Queries are expressed in terms of some query language. Queries provide for users and programmers a very general way to specify data selections, projections, combination, computation and so on over data set/stream. In the meanwhile, users can send the queries using either imperative or declarative language.
+
+\subsubsection*{Imperative vs. Declarative language}
+\begin{itemize}
+	\item \textbf{Imperative language} requires users to define explicitly step by step \textbf{how} code should be executed to get \textbf{what} they want. They need to break the program into sequences of commands in particular order for the system to perform. Actually, many existing programming languages are imperative supporting \textit{assignemnt}, \textit{for-loop}, \textit{if-else} statements and so on to construct the complete program. For example, assuming that \textit{StockTick} is a  list of stock transactions,  to filter through \textit{StockTick} to get all stock transactions from `NYSE' only: 
+\begin{lstlisting}
+	function getTransFromNYSE {
+		var fromNYSE = []
+		for (var i = 0; i < StockTick.length; i++) {
+			if (StockTick[i].Exchange == "NYSE")
+				fromNYSE.add(StockTick[i])
+		}
+	}
+\end{lstlisting}
+	\item \textbf{Declarative language}, like SQL or LINQ, users just specify \textbf{what} they want - which sort of data, which transformation they want it to be afterwards, but \textbf{not how} to achieve the result. The corresponding declarative program for previous examples is written in SQL language as below:
+	\begin{verbatim}
+		SELECT * from StockTick where Exchange = "NYSE"
+	\end{verbatim}
+\end{itemize}
+
+There are several advantages of declarative over imperative language \citep{Martin:2014}
+
+\begin{itemize}
+	\item Declarative language is typically more concise , more friendly and easier to work with. For instance, comparing 2 previous programs, the former has 7 lines of code while the latter goes with 1 line. According to \citep{Ronnie:2015}, Java program is typically 50 times less compact than SQL query for the same purpose. Generally, that because they have different level of abstraction. Declarative language already hides complicated implementation details. It makes the program much more simpler but possible for system to introduce underneath improvement without any impact on queries.
+	\item Declarative languages, for example SQL, HTML,  are usually followed a set of standard syntaxs which make it more limited in functionality, give the system more room for automatic optimization. 
+	\item In terms of parallel execution environment, declarative language like SQL has a better chance to be executed faster. Imperative code instructs its sequence of operators to be performed in a certain order so that it is really hard to parallelize programs across distributed system. In the other hand, declarative queries are more atomic to be implemented in parallel if appropriate.
+\end{itemize}
+
+\subsubsection*{SQL-like dialect and LINQ}
+Several advantages to SQL-based languages \citep{Henrique:2014}
+\begin{itemize}
+
+	\item well-established language
+	\item data-at-rest to data-in-motion
+	\item standard adopted by virtually all relational database systems. As a result, parsers, visualizers and composers for SQL are readily available.
+	\item lie at the heart of relational databases. Extending it is a possible incremental approach to quickly build engine
+
+\end{itemize}
+	
+\subsubsection*{LINQ}
+https://www.linqpad.net/WhyLINQBeatsSQL.aspx
+
+
+Despite its power, LINQ doesn't deprecate SQL. It takes more than 95 percents of the querying brunt, but you still sometimes need SQL for:
+
+Hand-tweaked queries (especially with optimization or locking hints)
+
+Queries that involve selecting into temporary tables, then querying those tables
+
+Predicated updates and bulk inserts
+
+\subsubsection*{Visual languages} \citep{Henrique:2014}
+
+\subsection*{Operators}
+Non-blocking operators
 
 
 
@@ -42,7 +111,17 @@ A declarative query language is attractive because it is typically more concise 
 	\end{itemize}
 	
 \item Fundamental of Stream Processing : page 110
-\item 
+	\begin{itemize}
+		\item Compositional elements
+		\item Declarative operators
+		\item Expression language
+		\item Type System
+		\item Windowing
+		\item Standard operators and adapters
+		\item Modularity
+		\item Configuration
+		\item Extensiblity
+	\end{itemize}
 \end{itemize}
 
 

@@ -30,7 +30,7 @@ In theory, they have defined 2 types of orders: total order and partial order.
 \end{itemize}
 \end{defi}
 
-A set of elements, which is partially ordered, does not always ensure the order of  2 arbitrary elements. The natural state in a distributed system is partial order. Neither in the network nor between independent nodes the system are not able to make any guarantees about relative order of two elements, probably due to many factors such as network latency, performance and so on; but at each node, one can observe a local total order.
+A set of elements, which is partially ordered, does not always ensure the order of  2 arbitrary elements. The natural state in a distributed system is partial order. Neither in the network nor between independent nodes the system is able to make any guarantees about relative order of two elements, probably due to many factors such as network latency, performance and so on; but at each node, one can observe a local total order.
 
 \begin{defi}
  Total order \citep{Simovici:2008} is a binary relation `$\leq$' over a set $S$ which is anti-symmetric and transitive and total. Therefore, total order is a partial order with totality
@@ -74,7 +74,7 @@ A log line records an action of user \textit{pablo} to get an image on Oct 10 20
 \end{verbatim}
 Since web server may handle thousands of concurrent requests per second, it is possible to have many line of log sharing a $t_{app}$ value. Therefore, application timestamp can be used as a source of total but non-strict ordering.
 
-\textbf{System Timestamps} Even if the element arrives at the system are not equipped with a timestamp, the system assigns a timestamp to each tuple, by default using the system’s local clock. While this process generates a raw stream with system timestamps that can be processed like a regular raw stream with application timestamps, one should be aware that application time and system time are not necessarily synchronized\citep{Kramer:2009}. Since system timestamp is assigned implicitly by system, one may not notice its presence on schema. 
+\textbf{System Timestamps $t_{sys}$} Even if the element arrives at the system are not equipped with a timestamp, the system assigns a timestamp to each tuple, by default using the system’s local clock. While this process generates a raw stream with system timestamps that can be processed like a regular raw stream with application timestamps, one should be aware that application time and system time are not necessarily synchronized\citep{Kramer:2009}. Since system timestamp is assigned implicitly by system, one may not notice its presence on schema. 
 
 
 Both application and system timestamp captures time information but they carry two different meanings. The former is related to the occurrence of the application event (when the event happens), whereas the latter is related to the occurrence of related system (when the corresponding event data arrive at system). Multiple elements may have the same application timestamps but they will not arrive in the same order. Therefore, system will assign the different unique system timestamp based on their arrival. System then can believe in the system timestamp as a strict total ordered basis for reasoning about arrival elements to perform processing. For example, another log from different users arrive at system:
@@ -89,54 +89,61 @@ As we mentions above, in general, time domain is total ordered in local machine,
 \textbf{\\TODO}: more on Timestamp in Streams \citep{Babcock:2002} page 13
 
 \subsection*{Tuple}
-A tuple is a finite sequence of atomic values. Each tuple can be defined by a Schema corresponding to a composite type. Tuple can represent a relational tuple, a event or a record of sensor data and so on. \citep{Arasu:2006:CCQ}. For instance, the log format in previous example follow a schema:
+A tuple is a finite sequence of atomic values. Each tuple can be defined by a \textit{Schema} corresponding to a composite type. Tuple can represent a relational tuple, a event or a record of sensor data and so on \citep{Arasu:2006:CCQ}. For instance, the line of log in previous example follow a schema:
 
 \begin{verbatim}
 <SourceIP, IdentityType, user, timestamp, action, response, packageSize>
 \end{verbatim}
 
-A data tuple is the fundamental, or atomic data element, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consists of a set of (Attribute x Value) pairs such as $(SourceIP, 219.53.210.143)$
-
+A data tuple is the fundamental, or atomic data element, embedded in a data stream and processed by an application. A tuple is similar to a database row in that it has a set of named and typed attributes. Each instance of an attribute is associated with a value\citep{Henrique:2014}. Furthermore, one can consider a tuple as a partial order mapping a finite subset of attribute names to atomic values\citep{Petit:2012}. A tuple consists of a set of \textit{(Attribute $\times$ Value)} pairs such as $(SourceIP, 219.53.210.143)$
 
 
 \section{Stream Model}
 
 
-Based on time and tuple domain, basically, CQL \citep{Arasu:2006:CCQ} defines a data stream as
+Based on time and tuple domain, basically, CQL in STREAM engine\citep{Arasu:2006:CCQ} defines a data stream as
 \begin{defi}
-	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $<s,t> \in \mathbb{S}$, where $s$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
+	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $s:<v,t> \in \mathbb{S}$, where $v$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
 \end{defi}
 
-There are several stream definitions varying based on the execution model of systems. On the previous definition, a timestamp attribute can be a non-strict total ordered application timestamp so that system may not rely on it to order the coming tuples to react on them. For this reason, stream can contain an extra physical identifier  $\varphi$ \citep{Petit:2010} such as increment tuple id to specify its order. The tuple with smaller id mean that they arrive and should be processed before the tuples with bigger id. Another way to identify the order of a tuple element is to separate the concept of application and system timestamp. In SECRET model \citep{Dindar:2013}, each stream element is composed of a tuple for event contents, an application timestamp, a system timestamp, and a batch-id value. The idea of batch-id is critical to SECRET system we do not mention in the thesis.
-In short, we assume that elements of a stream are totally ordered by the system timestamp and physical identifier.
+There are several definitions of data stream varying based on the execution model of systems. On the previous definition, a timestamp attribute can be a non-strict total ordered application timestamp so that system may not rely on it to select tuples on some operations requiring proper order between any pair of tuples. For this reason, stream can contain an extra physical identifier  $\varphi$ \citep{Petit:2010} such as increment tuple id to specify its order. The tuple with smaller id mean that they arrive and should be processed before the tuples with bigger id. Another way to identify the order of a tuple element is to separate the concept of application and system timestamp. In SECRET model \citep{Dindar:2013}, each stream element is composed of a tuple for event contents, an application timestamp, a system timestamp, and a batch-id value. The idea of batch-id is critical to SECRET system we do not mention in the thesis.
+In short, we learn that elements of a stream are totally ordered by the system timestamp and physical identifier.
 
-In Apache Flink, for the flexibility, system accepts a user-defined timestamp function   $f: \mathbb{TP} \rightarrow \mathbb{T}$ to map a tuple to its application timestamp value. One of the most common scenario is that the function $f$ extract one attribute of Schema and consider it as timestamp value.
+In Apache Flink, for the flexibility, system accepts a user-defined timestamp function   $f: \mathbb{TP} \rightarrow \mathbb{T}$ to map a tuple to its application timestamp value. One of the most common scenario is that the function $f$ extract one attribute of Schema and consider it as timestamp value in milliseconds.
 
-Consider the example of temperature sensors, the sensors feed a stream $S(TIME\ :\ long,TEMP:\ int)$ indicating that at the \textit{TIME}, the temperature is \textit{TEMP}. Since $TIME$ attribute has the $long$ long, we are able to consider it as a timestamp due to function
+Consider the example of temperature sensors, the sensors feed a stream $S(TIME\ :\ long,TEMP:\ int)$ indicating that at the moment of \textit{TIME}, the ambient temperature is \textit{TEMP}. Since $TIME$ attribute has the $long$ data type, we are able to consider it as a timestamp value due to function
 \begin{equation}
-f: (TIME, TEMP) \rightarrow SEC
+f: (TIME, TEMP) \rightarrow TIME
 \end{equation}
 
-However, we may receive the stream from a different timezone. Thus, the application timestamp must be converted to the current timezone for the sake of data integration. For instance, one acquires the timestamp value (in milliseconds) in next timezone.
+However, we may receive the stream signal from a different timezone. Thus, the application timestamp must be converted to the current timezone for the sake of data integration. For instance, one acquires the timestamp value (in milliseconds) in next timezone.
 \begin{equation}
 f: (TIME, TEMP) \rightarrow TIME + 3600*1000
 \end{equation}
 
 
-I propose the definition of Stream $s:<v>$ extends to $s:<v, t_{app}, t_{sys}>$, with $t_{app} = f(v)$, $t_{app} \in \mathbb{T}$, $t_{sys} \in \mathbb{T}$
+%%I propose the definition of Stream $s:<v>$ extends to $s:<v, t_{app}, t_{sys}>$, with $t_{app} = f(v)$, $t_{app} \in \mathbb{T}$, $t_{sys} \in \mathbb{T}$
 
 For further analysis on execution model in Apache Flink, I propose a extend definition of a data stream as:
-
 \begin{defi}
-	A stream $\mathbb{S}$ is a countably infinite set of elements $s \in \mathbb{S}$. Each  stream element $s: <v, t_{app}, t_{sys}>$, consists of a relational tuple v conforming to a schema $TP$, with an \textit{optional} application time value $t_{app} = f(v) \in \mathbb{T}$, and a timestamp $t_{sys}$ generated automatically by system, due to the event arrival.
+	A stream $\mathbb{S}$ is a countably infinite set of elements $s \in \mathbb{S}$. Each  stream element $s: <v, t_{app}, t_{sys}>$, consists of a relational tuple v conforming to a schema $S$, with an \textit{optional} application time value $t_{app} \in \mathbb{T}^*$ with $\mathbb{T}^* = \{-1\} \bigcup \mathbb{T}$ and a timestamp $t_{sys} \in \mathbb{T}^*$ generated automatically by system, due to the event arrival.
 \end{defi}
-With the partial function $f$ to extract application timestamp from tuple: $f: \mathbb{TP} \rightarrow \mathbb{T}$
+
+With the partial function $f$ to extract an application timestamp value from tuple: $f: \mathbb{TP} \rightarrow \mathbb{T}$,
+\begin{equation}
+	t_{app} = 
+	\begin{cases}
+		f(v) \qquad\qquad if\,funtion\, f\, is\, defined\\
+		   \\
+		-1 \qquad\qquad\qquad otherwise
+	\end{cases}
+\end{equation}
+
 
 
  
 \subsection*{Data Stream Properties} 
 In the data stream model, some of all the input data that are to be operated are not available for random access from disk or memory, but rather arrive as one or more continuous data streams. Data streams differ from the conventional stored relation model in several ways\citep{Babcock:2002}
-
 
 Data Stream may have the following properties \citep{Golab:2010}:
 \begin{itemize}
@@ -204,7 +211,7 @@ A logical stream from source go straight through an aggregate and a filter opera
 \end{figure}
 
    
-\subsection*{Signals[Option] \citep{Golab:2010}}     
+%\subsection*{Signals[Option] \citep{Golab:2010}}     
     
     
 \section{Stream Windows}
