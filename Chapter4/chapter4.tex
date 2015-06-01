@@ -10,28 +10,10 @@
     \graphicspath{{Chapter4/Figs/Vector/}{Chapter4/Figs/}}
 \fi
 
-In the streaming literature, query language model a stream as a representation for an infinite append-only relation. The append-only stream model effects the following limitations\citep{Ghanem:2008}
-\begin{itemize}
-\item It limits the applicability of the language since the append-only models cannot represent streams from the various domain( e.g., the update streams or streams that represent concatenation of the states of a fixed size relation).
-\item The append-only stream model limits the types of queries that the language can express since only non-blocking queries can produce append-only streams as output
-\item The semantics of query composition in the append-only stream model is complex and the meaning of the composed queries is difficult to understand.
-\end{itemize}
-
-Query \citep{Babcock:2002} 
-
-Query : Smart Votex , page 2
-
-Window Specification over Data Streams.pdf
-
-[Stream] Evaluate CQL
-
-Designing\_Data\_Intensive\_Applications.pdf
-
-
 
 \subsection*{Query}
 
-A query is a request telling system \textbf{what} to do in order to retrieve or alter desired information stored or processed by system. For instances, asking ``How many products are sold today? ''. Queries over data stream and in a traditional DBMS have a lot in common; however, due to characteristic of continuousness in data stream, we may classify a query as one-time query or continuous query \citep{Terry:1992} \citep{Babcock:2002}. 
+A query is a request telling system what to do in order to retrieve or alter desired information stored or processed by system. For instances, asking ``How many products are sold today? ''. Queries over data stream and in a traditional DBMS have a lot in common; however, due to characteristic of continuousness in data stream, we may classify a query as one-time query or continuous query \citep{Terry:1992} \citep{Babcock:2002}. 
 \begin{itemize}
 	\item \textbf{One-time queries} are evaluated once over data set at a given time instant, and terminated after returning its result. This is also called \textit{passive query} \citep{SmartVotex:2011} since system require queries and passively waits for users to issue these queries before executing. 
 	\item \textbf{Continuous queries}, in contrast, get evaluated continually as new data arrives to the observed stream. System continuously delivery new results  over time according to the snapshot or state of data stream seen so far. Thus the output of queries is not a single result, but rather new streams of results for further operators if desired. Obviously, continuous queries really fit to user's requirements to observed data streams till its end. 
@@ -60,7 +42,7 @@ Queries are expressed in terms of some query language. Queries provide for users
 	\end{verbatim}
 \end{itemize}
 
-There are several advantages of declarative over imperative language \citep{Martin:2014}
+There are several advantages of declarative over imperative language \citep{Martin:2014}:
 
 \begin{itemize}
 	\item Declarative language is typically more concise , more friendly and easier to work with. For instance, comparing 2 previous programs, the former has 7 lines of code while the latter goes with 1 line. According to \citep{Ronnie:2015}, Java program is typically 50 times less compact than SQL query for the same purpose. Generally, that because they have different level of abstraction. Declarative language already hides complicated implementation details. It makes the program much more simpler but possible for system to introduce underneath improvement without any impact on queries.
@@ -68,67 +50,96 @@ There are several advantages of declarative over imperative language \citep{Mart
 	\item In terms of parallel execution environment, declarative language like SQL has a better chance to be executed faster. Imperative code instructs its sequence of operators to be performed in a certain order so that it is really hard to parallelize programs across distributed system. In the other hand, declarative queries are more atomic to be implemented in parallel if appropriate.
 \end{itemize}
 
-\subsubsection*{SQL-like dialect and LINQ}
-Several advantages to SQL-based languages \citep{Henrique:2014}
+\subsection*{FlinkCQL - a SQL-like dialect}
+Recently, there are 2 common form of declarative language applying to data query: SQL and LINQ. However, we decide to extend SQL syntax for our continuous query language due to several advantages:
 \begin{itemize}
-
-	\item well-established language
-	\item data-at-rest to data-in-motion
-	\item standard adopted by virtually all relational database systems. As a result, parsers, visualizers and composers for SQL are readily available.
-	\item lie at the heart of relational databases. Extending it is a possible incremental approach to quickly build engine
-
-\end{itemize}
-	
-\subsubsection*{LINQ}
-https://www.linqpad.net/WhyLINQBeatsSQL.aspx
-
-
-Despite its power, LINQ doesn't deprecate SQL. It takes more than 95 percents of the querying brunt, but you still sometimes need SQL for:
-
-Hand-tweaked queries (especially with optimization or locking hints)
-
-Queries that involve selecting into temporary tables, then querying those tables
-
-Predicated updates and bulk inserts
-
-\subsubsection*{Visual languages} \citep{Henrique:2014}
-
-\subsection*{Operators}
-Non-blocking operators
-
-
-
-
-\section{Fundamental Features}
-
-\begin{itemize}
-\item Stream-oriented Query Languages and Operators
-	\begin{itemize}
-		\item Language closure
-		\item Windowing
-		\item Correlation
-		\item Pattern Matching
-	\end{itemize}
-	
-\item Fundamental of Stream Processing : page 110
-	\begin{itemize}
-		\item Compositional elements
-		\item Declarative operators
-		\item Expression language
-		\item Type System
-		\item Windowing
-		\item Standard operators and adapters
-		\item Modularity
-		\item Configuration
-		\item Extensiblity
-	\end{itemize}
+	\item Traditional database model and data stream model are distinguished but till share many common features and operators. Since,SQL was a well-designed for handle data in batch mode, extending it to handle data-in-motion in data stream model is a possible incremental approach to quickly define language with less effort.
+	\item SQL is so common and recognized by most of developers. Therefore, extended SQL languare would not challenge them to learn and master it.
+	\item SQL is a standard adopted by most of relational database systems. As a result, their syntax is well-designed and refactored. Moreover, parsers, visualizers and composers for SQL are readily available to extend.
 \end{itemize}
 
+http://www.sqlstream.com/blog/2015/03/why-we-need-sql-for-real-time-streaming-analytics/
 
-\section{Continuous Query Language}
+	
+%\subsubsection*{LINQ}
+%https://www.linqpad.net/WhyLINQBeatsSQL.aspx
+%http://pankajtiwarii.blogspot.hu/2012/09/advantages-and-disadvantages-of-linq_3.html
 
+%Despite its power, LINQ doesn't deprecate SQL. It takes more than 95 percents of the querying brunt, but you still sometimes need SQL for:
+
+%Hand-tweaked queries (especially with optimization or locking hints)
+
+%Queries that involve selecting into temporary tables, then querying those tables
+
+%Predicated updates and bulk inserts
+
+%\subsubsection*{Visual languages} \citep{Henrique:2014}
+
+
+There are several properties of data stream which we take into account when extending SQL to FlinkCQL:
+
+\begin{itemize}
+	\item \textbf{Language closure}: it ensures that the output of any one query can be input to another
+	\item \textbf{Windowing} FlinkCQL allow to define window specification and  implement related operators
+	\item \textbf{Non-blocking operators} Naturally, blocking operation is not applicable to data stream
+\end{itemize}
+
+We are hereby going to present FlinkCQL syntax on \ref{language} and its semantic  on \ref{semantic}
+
+
+
+
+
+In the streaming literature, query language model a stream as a representation for an infinite append-only relation. The append-only stream model effects the following limitations\citep{Ghanem:2008}
+\begin{itemize}
+\item It limits the applicability of the language since the append-only models cannot represent streams from the various domain( e.g., the update streams or streams that represent concatenation of the states of a fixed size relation).
+\item The append-only stream model limits the types of queries that the language can express since only non-blocking queries can produce append-only streams as output
+\item The semantics of query composition in the append-only stream model is complex and the meaning of the composed queries is difficult to understand.
+\end{itemize}
+
+Query \citep{Babcock:2002} 
+
+Query : Smart Votex , page 2
+
+Window Specification over Data Streams.pdf
+
+[Stream] Evaluate CQL
+
+Designing\_Data\_Intensive\_Applications.pdf
+
+
+
+%\section{Fundamental Features}
+
+%\begin{itemize}
+%\item Stream-oriented Query Languages and Operators
+%	\begin{itemize}
+%		\item Language closure
+%		\item Windowing
+%		\item Correlation
+%		\item Pattern Matching
+%	\end{itemize}
+	
+%\item Fundamental of Stream Processing : page 110
+%	\begin{itemize}
+%		\item Compositional elements
+%		\item Declarative operators
+%		\item Expression language
+%		\item Type System
+%		\item Windowing
+%		\item Standard operators and adapters
+%		\item Modularity
+%		\item Configuration
+%		\item Extensiblity
+%	\end{itemize}
+%\end{itemize}
+
+
+\section{Continuous Query Language} \label{language}
 
 \subsection{Data Type}
+
+FlinkCQL supports numbers of data types including numeric types (\textit{Byte}, \textit{Short}, \textit{Int}, \textit{Long}, \textit{Float}, \textit{Double}), \textit{Boolean}  type, string types (\textit{Char}, \textit{String}), deta type (\textit{Datetime}) with detailed descriptions in (Table~\ref{table:Data Type})
 
 
 \begin{table}[h]
@@ -136,27 +147,35 @@ Non-blocking operators
 \centering
 \label{table:Data Type}
 \setlength\extrarowheight{5pt}
-\begin{tabular}{||c|l|l||}
+\begin{tabular}{||>{\centering\bfseries}m{1in} |>{\centering}m{3in}  |>{\centering\arraybackslash}m{2in}||}
 \hline
 %\rowcolor[HTML]{ECF4FF} 
 %{\color[HTML]{ECF4FF} \textbf{Scala Type}} & {\color[HTML]{ECF4FF} \textbf{Flink Type}} & {\color[HTML]{ECF4FF} \textbf{Viewable as}} \\ \hline
-\textbf{Scala Type} &  \textbf{Flink Type} & \textbf{Convertable to} \\ \hline\hline
-                    String               &           STRING\_TYPE\_INFO                   &  \\ \hline
-                    Boolean				&           BOOLEAN\_TYPE\_INFO                  &   \\ \hline
-                   Char					&           CHAR\_TYPE\_INFO                       &  Byte, Short, Integer, Long, Double\\ \hline
-					Byte		           	&           BYTE\_TYPE\_INFO                     & Short, Integer, Long,Float, Double \\ \hline
-					Short				&           SHORT\_TYPE\_INFO                    & Integer, Long, Float, Double\\ \hline								
-					Int					&           INT\_TYPE\_INFO                      & Long, Float, Double\\ \hline
-					Long			 		&           LONG\_TYPE\_INFO                     & Float, Double \\ \hline								
-					Float				&           FLOAT\_TYPE\_INFO                    & Double \\ \hline
-					Double				&           DOUBLE\_TYPE\_INFO                   &   \\ \hline							
-	Datetime				&           DATE\_TYPE\_INFO                &        	\\ \hline           							           							           							           							           
+\textbf{FlinkCQL Type} & \textbf{Description}  & \textbf{Convertable to} \\ \hline\hline
+                    String  & A sequence of Chars                               &  \\ \hline
+                    Boolean	& Either the literal true or the literal false			               &   \\ \hline
+                   Char		& 16 bit unsigned Unicode character. Range from U+0000 to U+FFFF			 &  Byte, Short, Integer, Long, Double\\ \hline
+					Byte		 & 8 bit signed value. Range from -128 to 127          	                   & Short, Integer, Long,Float, Double \\ \hline
+					Short	& 16 bit signed value. Range -32768 to 32767			               & Integer, Long, Float, Double\\ \hline								
+					Int		& 32 bit signed value. Range -2147483648 to 2147483647			 & Long, Float, Double\\ \hline
+					Long		& 64 bit signed value. -9223372036854775808 to 9223372036854775807	 		                     & Float, Double \\ \hline								
+					Float	& 32 bit IEEE 754 single-precision float			                    & Double \\ \hline
+					Double	& 64 bit IEEE 754 double-precision float			                  &   \\ \hline							
+	Datetime				&     'YYYY-MM-DD HH:MM:SS' format. The supported range is '1000-01-01 00:00:00' to '9999-12-31 23:59:59'               &        	\\ \hline           							           							           							           							           
 \end{tabular}
 \end{table}
 
 
 
 \subsection{Data Definition Language (DDL)}
+We utilize Extended Backus–Naur Form (EBNF) to make a formal descriptions of FlinkCQL. To understand the syntax, there are some EBNF notations to know
+\begin{itemize}
+	\item $\textbf{[...]}$ : Expression inside squared brackets is \textit{optional}
+	\item $\textbf{\{...\}}$ : Expression, which is wrapped by curly braces, is omitted or repeated. 
+	\item $\textbf{|}$ : alternation (or)
+\end{itemize} 
+Moreover, be aware that \textit{ident} stands for \textit{Identifier} which is recognized as name of schema, stream, data field and so on.
+\newpage
 \subsubsection{Create Schema}
 
 %\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
@@ -168,16 +187,23 @@ Non-blocking operators
 (<named schema ident>|<anonymous schema>) \\
   { }[EXTENDS <parent schema ident>]
 
-<anonymous schema> ::= `(' typedField \{`,' typedField\}`)'
+<anonymous schema> ::= `(' <typedField> \{`,' <typedField>\}`)'
 
 <typedField> ::= <field ident> <data type>
 
 \end{grammar}
 	
-	
+Similar to CREATE TABLE statement in SQL, we are able to identify a schema of stream tuples. Each schema consist of name followed by list of data fields (the combination of field identifier and its data type). For example, we create schema for \textit{StockTick} stream:
+\begin{verbatim}
+CREATE SCHEMA StockTickSchema (symbol String, sourceTimestamp Long, 
+price Double, quantity Int, exchange String)
+\end{verbatim}
 
-
-
+We extends the grammar so that a schema can be referenced or extended to another schema. For examples, in below examples, \textit{StockTickSchema2} is referencing to previous \textit{StockTickSchema} so that they own a similar set of attributes. Meanwhile, \textit{StockTickSchema3} extends from it to have one more attribute (\textit{"id"})
+\begin{verbatim}
+CREATE SCHEMA StockTickSchema2 StockTickSchema
+CREATE SCHEMA StockTickSchema3 (id Int) EXTENDS StockTickSchema
+\end{verbatim}
 
 \subsubsection{Create Stream}
 	
@@ -185,7 +211,7 @@ Non-blocking operators
 \begin{grammar}
 <Stream statement> ::= CREATE STREAM <schema ident> \\		(<named schema ident>|<anonymous schema> ) \\
 { }[<source>]
-sub
+
 <source> ::= (AS <derived source>) | ( SOURCE <raw source>)
 
 <derived source> ::=  <stream ident>| <subSelect>
@@ -195,8 +221,71 @@ sub
 					\alt FILE `('<file path>, <delimiter>`)'
 \end{grammar}
 
+A stream cannot be queried unless it is registered with a schema, simply because system require users to specify name of attributes for expression in most of cases. For this reason, we allow to entitle a stream to its schema using CREATE STREAM statement. Except for the reserved keywords, the statement consists of 3 parts. Stream name declaration is followed by schema definition and source of stream. Its schema can be recalled from a previously-defined named schema such as \textit{StockTickSchema}. 
+\begin{verbatim}
+CREATE STREAM StockTick StockTickSchema;
+\end{verbatim}
+
+One also has abilities to define new schema with a set of attribute name and type. In this case, the stream and its schema share the same name.
+\begin{verbatim}
+CREATE STREAM StockTick (symbol String, price Double, quantity Int)
+\end{verbatim}
+
+The last part is optional source of stream. Recall that we have two kind of stream representations: base stream and derived stream. \textit{<raw source>} clause indicates that this is a base stream obtained through a network connection (\textit{<host>, <post>}) or from a text file. For instance, \textit{StockTick} stream originates from host \textit{98.138.253.109} via port \textit{2000}
+
+\begin{verbatim}
+	CREATE STREAM StockTick StockTickSchema 
+	SOURCE HOST ("98.138.253.109", 2000)
+\end{verbatim}
+
+Derived stream may come from another existing stream or output of a query and its operators. \textit{<derived source>} clause indicates these two possibilities. For example, we register a new stream \textit{StockPrice} which is derived from \textit{StockTick} but pay attention to stock symbol and its price only
+\begin{lstlisting}
+	CREATE STREAM StockPrice (symbol String, price Double) AS
+	SELECT symbol, price 
+	FROM StockTick
+\end{lstlisting}
+
 
 \subsection{Data Manipulation Language (DML)}
+
+\subsubsection{Insert}
+
+\begin{grammar}
+<insert statement> ::= INSERT INTO <stream ident> [AS] 
+							(<stream ident> | <subSelect>)
+\end{grammar}
+% <merge>
+
+In CREATE STREAM statement, stream identifier and its schema definition are required but its source is optional. It means that registered stream could attached its source later when it is available. In this case, we take the advantage of INSERT statement which help us to complete stream registration procedure. However, we support INSERT statement for derived stream only. It naturally makes sense because a base stream is concrete and should be permanently registered from beginning.
+Keep in mind that INSERT statement is a complementary to CREATE STREAM statement in case \textit{<source>} is missing. It will not work for a stream identifier which already refer to a real stream source.
+
+\begin{verbatim}
+	CREATE STREAM StockTick StockTickSchema;
+	INSERT INTO StockTick AS stockStream;
+\end{verbatim}
+
+
+\subsubsection{Merge}
+\begin{grammar}
+<merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
+\end{grammar}
+
+\subsubsection{Split}
+\begin{grammar}
+<split statement> ::= ON <stream ident> \\
+						<insert clause> \{, <insert clause>\}
+						
+<insert clause> ::= INSERT INTO <stream ident> \\SELECT <target entry list> WHERE <predicate>
+\end{grammar}
+
+\begin{verbatim}
+	on OrderEvent
+  insert into LargeOrders select orderId, customer where orderQty >= 100
+insert into MediumOrders select orderId, customer where orderQty between 20 and 100
+  insert into SmallOrders select orderId, customer where orderQty > 0
+\end{verbatim}
+
+
 
 \subsubsection{Select}
 \begin{grammar}
@@ -224,33 +313,6 @@ sub
 \end{grammar}
 
 
-\subsubsection{Insert}
-
-\begin{grammar}
-<insert statement> ::= INSERT INTO <stream ident> [AS] 
-							(<stream ident> | <subSelect>| <merge>)
-\end{grammar}
-
-
-\subsubsection{Merge}
-\begin{grammar}
-<merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
-\end{grammar}
-
-\subsubsection{Split}
-\begin{grammar}
-<split statement> ::= ON <stream ident> \\
-						<insert clause> \{, <insert clause>\}
-						
-<insert clause> ::= INSERT INTO <stream ident> \\SELECT <target entry list> WHERE <predicate>
-\end{grammar}
-
-\begin{verbatim}
-	on OrderEvent
-  insert into LargeOrders select orderId, customer where orderQty >= 100
-insert into MediumOrders select orderId, customer where orderQty between 20 and 100
-  insert into SmallOrders select orderId, customer where orderQty > 0
-\end{verbatim}
 
 
 \subsection{Operators}
@@ -290,7 +352,7 @@ Semantic and Implementation of Continuous Sliding window queries over data strea
 
 
 
-\section{Continuous Query Semantics and Operators}
+\section{Continuous Query Semantics and Operators} \label{semantic}
 Semantics of Data Streams and Operators
 
 \href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
