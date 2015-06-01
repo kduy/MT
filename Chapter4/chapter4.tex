@@ -267,7 +267,7 @@ Keep in mind that INSERT statement is a complementary to CREATE STREAM statement
 
 \subsubsection{Merge}
 \begin{grammar}
-<merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
+<merge statement> ::= MERGE <stream ident> `,' <stream ident> {`,'<stream ident>}
 \end{grammar}
 
 One of data stream properties is that data are emitted by a variety of external sources. It is cumbersome to write a similar query for each of substream. To eliminate this duplication, Flink allows to merge various registered stream with same Schema into one. For example, we integrate all StockTick from several Exchange into one:
@@ -306,7 +306,7 @@ insert into SmallTicks select symbol, price where quantity > 0
 <stream reference> ::= (<stream ident>| <subSelect>) [`['Window specification`]']
 
 <join clause> ::= CROSS JOIN <stream reference>
-				\alt [INNER] JOIN <stream reference>
+				\alt [INNER] JOIN <stream  reference> (ON <predicate> | USING <field ident>)
 
 <window specification> ::= 
 								SIZE <spec> \\
@@ -318,10 +318,57 @@ insert into SmallTicks select symbol, price where quantity > 0
 			\alt <int>
 \end{grammar}
 
+The specification of a SELECT query in FlinkCQL resembles the formulation of one-time queries in standard SQL with common SELECT, FROM, WHERE and GROUP BY clause. However, we did enhance the FROM clause with a \textit{<window specification>} to cope with window operators. The semantic of GROUP BY  also differ from one in native SQL as well. All changes will be mentioned in details in the following:
+
+\subsubsection*{FROM clause}
+First, windowing constructs play an crucial role in stream processing and it really makes FlinkCQL distinctive. Our \textit{<window specification>} fully supports all kind of window semantics. It is made up of 3 parts: \textit{SIZE} denotes the window size, \textit{EVERY} indicates the slide size, and \textit{PARTITION BY} is to classify tuples of window into disjoint group. Recall the example in Figure~\ref{fig:winSpec} which query continuously on   windows grouped by Exchange value, over last 3 hours once every 1 hour
+\begin{lstlisting}
+	[
+		SIZE 3 hours 
+		EVERY 1 hours 
+	 	PARTITIONED BY Exchange
+	 ]
+\end{lstlisting}
+
+Furthermore, we assign different formulations of \textit{<spec>} for different measurement unit. Let us consider different windows:
+\begin{itemize}
+	\item System-timestamp-based windows: \textit{SIZE 1 min}: means that window captures all tuples last minute of system clock.
+	\item Application-timestamp-based windows: \textit{SIZE 60 on sourceTimestamp}: means window size is 60 seconds based on \textit{sourceTimestamp} attribute
+	\item Count-based windows: \textit{SIZE 100}: means that only last 100 tuples can be buffered in window.
+\end{itemize}
+Be aware that, if \textit{EVERY} clause is missing, the window is a tumbling window by default.
+
+
+Second, window specification has to follow a stream identifier or a sub query which producing a data stream. Consider a query which continuously computes the average value of transaction quantities in \textit{StockTick} stream using tumbling window spanning last 100 transaction:
+
+\begin{verbatim}
+	SELECT avg(quantity) FROM StockTick [SIZE 100]
+\end{verbatim}
+
+If window specification is unavailable, the query is taken place on the scope of stream which can support non-blocking operators only. For examples, the following query is invalid:
+\begin{lstlisting}
+	SELECT avg(quantity) FROM StockTick
+\end{lstlisting}
+
+Third, currently \textit{JOIN} and \textit{CROSS JOIN} operators are supported only on time-based windows. Temporal operators take the current windows of both streams and apply the join/cross logic on these window pairs.
+
+The Join transformation produces a new tuple data stream with two fields. Each tuple holds a joined element of the first input data stream in the first tuple field and a matching element of the second input data stream in the second field for the current window.
+
+The Cross transformation combines two data streams into one stream. It builds all pairwise combinations of the elements of both input data streams in the current window, i.e., it builds a temporal Cartesian product.
+
+\subsubsection*{GROUP BY clause}
+\textit{GROUP BY} clause in FlinkCQL have a slight different meaning agains one in SQL. This clause in native SQL is used to collect data across data set and group the results by one or more columns. System then can compute some aggregation functions in each group. However, applying \textit{GROUP BY} operator on a data stream results in several sub-streams distinguished by their ``group keys''. Since the output are streams, we are not able to apply any blocking operators on them.\textit{HAVING} clause is also not applicable in this case. However,  we may obtain a stream of partitioned windows (Figure~\ref{fig:partitionedWin}) when discretizing those sub-streams using window operators. We present here the query to compute continuously average of transaction quantities in partitioned windows at (Figure~\ref{fig:partitionedWin})
+\begin{lstlisting}
+	SELECT ave(quantity)
+	FROM StockTick [SIZE 2]
+	GROUP BY symbol, exchange
+\end{lstlisting}
 
 
 
-\subsection{Operators}
+
+
+\subsubsection{Operators}
 \begin{enumerate}
 
 \item Scala-based Operators
