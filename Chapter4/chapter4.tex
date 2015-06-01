@@ -256,7 +256,7 @@ Derived stream may come from another existing stream or output of a query and it
 \end{grammar}
 % <merge>
 
-In CREATE STREAM statement, stream identifier and its schema definition are required but its source is optional. It means that registered stream could attached its source later when it is available. In this case, we take the advantage of INSERT statement which help us to complete stream registration procedure. However, we support INSERT statement for derived stream only. It naturally makes sense because a base stream is concrete and should be permanently registered from beginning.
+In CREATE STREAM statement, stream identifier and its schema definition are required but its source is optional. It means that registered stream could attached its source later when it is available. In this case, we take the advantage of INSERT statement to complete stream registration procedure. However, we support INSERT statement for derived stream only. It naturally makes sense because a base stream is concrete and should be permanently registered from beginning. We then can insert it into other stream if possible.
 Keep in mind that INSERT statement is a complementary to CREATE STREAM statement in case \textit{<source>} is missing. It will not work for a stream identifier which already refer to a real stream source.
 
 \begin{verbatim}
@@ -270,6 +270,12 @@ Keep in mind that INSERT statement is a complementary to CREATE STREAM statement
 <merge statement> ::= MERGE <stream ident> `,' <stream ident> {,<stream ident>}
 \end{grammar}
 
+One of data stream properties is that data are emitted by a variety of external sources. It is cumbersome to write a similar query for each of substream. To eliminate this duplication, Flink allows to merge various registered stream with same Schema into one. For example, we integrate all StockTick from several Exchange into one:
+\begin{verbatim}
+	MERGE stockTickFromNYSE, stockTickFromAMEX, stockTickFromNASDAQ
+\end{verbatim}
+
+
 \subsubsection{Split}
 \begin{grammar}
 <split statement> ::= ON <stream ident> \\
@@ -278,14 +284,14 @@ Keep in mind that INSERT statement is a complementary to CREATE STREAM statement
 <insert clause> ::= INSERT INTO <stream ident> \\SELECT <target entry list> WHERE <predicate>
 \end{grammar}
 
+Sometimes, user would like to divide an original stream into several sub-streams according to given criteria. And hence, it is more convenient to observe changes on different sub-streams or sends further queries. Consider the following examples, we classify the original \textit{StockTick} stream and divide into 3 sub-streams based on quantity of transaction.
+
 \begin{verbatim}
-	on OrderEvent
-  insert into LargeOrders select orderId, customer where orderQty >= 100
-insert into MediumOrders select orderId, customer where orderQty between 20 and 100
-  insert into SmallOrders select orderId, customer where orderQty > 0
+on StockTick
+insert into LargeTicks select symbol, price where quantity >= 100000
+insert into MediumTicks select symbol, price where quantity between 20000 and 100000
+insert into SmallTicks select symbol, price where quantity > 0
 \end{verbatim}
-
-
 
 \subsubsection{Select}
 \begin{grammar}
