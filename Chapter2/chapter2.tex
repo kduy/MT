@@ -89,7 +89,7 @@ As we mentions above, in general, time domain is total ordered in local machine,
 \textbf{\\TODO}: more on Timestamp in Streams \citep{Babcock:2002} page 13
 
 \subsection*{Tuple}
-A tuple is a finite sequence of atomic values. Each tuple can be defined by a \textit{Schema} corresponding to a composite type. Tuple can represent a relational tuple, a event or a record of sensor data and so on \citep{Arasu:2006:CCQ}. For instance, the line of log in previous example follow a schema:
+A tuple is a finite sequence of atomic values. Each tuple can be defined by a \textit{Schema} corresponding to a composite type. Tuple can represent a relational tuple, a event or a record of sensor data and so on \citep{Arasu:2006}. For instance, the line of log in previous example follow a schema:
 
 \begin{verbatim}
 <SourceIP, IdentityType, user, timestamp, action, response, packageSize>
@@ -101,7 +101,7 @@ A data tuple is the fundamental, or atomic data element, embedded in a data stre
 \section{Stream Model}
 
 
-Based on time and tuple domain, basically, CQL in STREAM engine\citep{Arasu:2006:CCQ} defines a data stream as
+Based on time and tuple domain, basically, CQL in STREAM engine\citep{Arasu:2006} defines a data stream as
 \begin{defi}
 	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $s:<v,t> \in \mathbb{S}$, where $v$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
 \end{defi}
@@ -149,7 +149,7 @@ Data Stream may have the following properties \citep{Golab:2010}:
 \begin{itemize}
 	\item They are considered as sequences of records, ordered by arrival time or by another ordered attributed such as generation time which is explicitly specified in schema, that arrive for processing over time instead of being available a priori. Totally order by time. 
 	\item They are emitted by a variety of external sources. Therefore, the system has no control over the arrival order or data rate, either within a stream or across multiple streams
-	\item They are produced continually and, therefore, have unbounded, or at least unknown, length. Thus, a DSMS may not know if or when the stream "ends". We may set a time-out waiting for new event. Exceeding the time-out, the stream considerably ends. 
+	\item They are produced continually and, therefore, have unbounded, or at least unknown, length. Thus, a DSMS may not know if or when the stream ``ends''. We may set a time-out waiting for new event. Exceeding the time-out, the stream considerably terminated. 
 	\item Typically, big volume of data arrives at very high speed so that data need to process on the fly. Once an element from a data stream model has been processed it is discarded or archived. Stream elements cannot be retrieved, unless it is explicitly stored in storage or memory, which typically is small relative to the size of the data stream. \citep{Babcock:2002}
 	
 \end{itemize}
@@ -157,7 +157,7 @@ Data Stream may have the following properties \citep{Golab:2010}:
 
 \subsection*{Stream Representations}
 \subsubsection*{Base Stream vs. Derived Stream}
-We distinguish 2 kinds of streams: \textit{base stream}(source stream) and \textit{derived stream}. Base stream stream is produced by the sources whereas derived stream is produced by continuous queries and their operators\citep{Arasu:2006:CCQ}. For example, \citep{Golab:2010} page 17
+We distinguish 2 kinds of streams: \textit{base stream}(source stream) and \textit{derived stream}. Base stream stream is produced by the sources whereas derived stream is produced by continuous queries and their operators\citep{Arasu:2006}. For example, \citep{Golab:2010} page 17
 From now on, we give example queries on input stream named \textit{StockTick}\citep{StreamBaseTut} and the schema associated with the incoming tuples includes 4 fields:
 \begin{itemize}
 \item \textbf{Symbol}, a string field of maximum length 25 characters that contains the symbol for a stock being traded (e.g. IBM);
@@ -394,7 +394,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 \label{fig:partitionedWin}
 \end{figure}
 	
-	
+	\textbf{TODO: check Towards a Streaming SQL standard page 1385}
 	
 	
 	

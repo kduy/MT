@@ -174,7 +174,7 @@ We utilize Extended Backus–Naur Form (EBNF) to make a formal descriptions of F
 	\item $\textbf{\{...\}}$ : Expression, which is wrapped by curly braces, is omitted or repeated. 
 	\item $\textbf{|}$ : alternation (or)
 \end{itemize} 
-Moreover, be aware that \textit{ident} stands for \textit{Identifier} which is recognized as name of schema, stream, data field and so on.
+Moreover, be aware that \textit{ident} stands for \textit{Identifier} which is recognized as name of schema, stream, data attribute and so on.
 \newpage
 \subsubsection{Create Schema}
 
@@ -187,13 +187,13 @@ Moreover, be aware that \textit{ident} stands for \textit{Identifier} which is r
 (<named schema ident>|<anonymous schema>) \\
   { }[EXTENDS <parent schema ident>]
 
-<anonymous schema> ::= `(' <typedField> \{`,' <typedField>\}`)'
+<anonymous schema> ::= `(' <typedAttribute> \{`,' <typedAttribute>\}`)'
 
-<typedField> ::= <field ident> <data type>
+<typedAttribute> ::= <attribute ident> <data type>
 
 \end{grammar}
 	
-Similar to CREATE TABLE statement in SQL, we are able to identify a schema of stream tuples. Each schema consist of name followed by list of data fields (the combination of field identifier and its data type). For example, we create schema for \textit{StockTick} stream:
+Similar to CREATE TABLE statement in SQL, we are able to identify a schema of stream tuples. Each schema consist of name followed by list of data attributes (the combination of attribute identifier and its data type). For example, we create schema for \textit{StockTick} stream:
 \begin{verbatim}
 CREATE SCHEMA StockTickSchema (symbol String, sourceTimestamp Long, 
 price Double, quantity Int, exchange String)
@@ -298,7 +298,7 @@ insert into SmallTicks select symbol, price where quantity > 0
 <select statement> ::= SELECT <target entry> \{, <target entry>\}\\
 	FROM <stream references> \\
 	WHERE <predicate> \\
-	GROUP BY <field ident> \{,<field ident>\} \\
+	GROUP BY <attribute ident> \{,<attribute ident>\} \\
 	INTO <stream ident>
 	
 <stream references> ::= <stream refererence> [<join clause>]
@@ -306,14 +306,14 @@ insert into SmallTicks select symbol, price where quantity > 0
 <stream reference> ::= (<stream ident>| <subSelect>) [`['Window specification`]']
 
 <join clause> ::= CROSS JOIN <stream reference>
-				\alt [INNER] JOIN <stream  reference> (ON <predicate> | USING <field ident>)
+				\alt [INNER] JOIN <stream  reference> (ON <predicate> | USING <attribute ident>)
 
 <window specification> ::= 
 								SIZE <spec> \\
 								{ }[EVERY <spec>]\\
-								{ }[PARTITIONED BY <field ident> \{,<field ident>\}]
+								{ }[PARTITIONED BY <attribute ident> \{,<attribute ident>\}]
 
-<spec> ::= <int> ON <field ident>
+<spec> ::= <int> ON <attribute ident>
 			\alt <int> <time unit>
 			\alt <int>
 \end{grammar}
@@ -336,7 +336,7 @@ Furthermore, we assign different formulations of \textit{<spec>} for different m
 	\item Application-timestamp-based windows: \textit{SIZE 60 on sourceTimestamp}: means window size is 60 seconds based on \textit{sourceTimestamp} attribute
 	\item Count-based windows: \textit{SIZE 100}: means that only last 100 tuples can be buffered in window.
 \end{itemize}
-Be aware that, if \textit{EVERY} clause is missing, the window is a tumbling window by default.
+Be aware that, if \textit{EVERY} clause is missing, window specification refer to a tumbling window by default.
 
 
 Second, window specification has to follow a stream identifier or a sub query which producing a data stream. Consider a query which continuously computes the average value of transaction quantities in \textit{StockTick} stream using tumbling window spanning last 100 transaction:
@@ -356,8 +356,10 @@ The Join transformation produces a new tuple data stream with two fields. Each t
 
 The Cross transformation combines two data streams into one stream. It builds all pairwise combinations of the elements of both input data streams in the current window, i.e., it builds a temporal Cartesian product.
 
+
+\textbf{TODO}: examples in \citep{Kramer:2009} page 14
 \subsubsection*{GROUP BY clause}
-\textit{GROUP BY} clause in FlinkCQL have a slight different meaning agains one in SQL. This clause in native SQL is used to collect data across data set and group the results by one or more columns. System then can compute some aggregation functions in each group. However, applying \textit{GROUP BY} operator on a data stream results in several sub-streams distinguished by their ``group keys''. Since the output are streams, we are not able to apply any blocking operators on them.\textit{HAVING} clause is also not applicable in this case. However,  we may obtain a stream of partitioned windows (Figure~\ref{fig:partitionedWin}) when discretizing those sub-streams using window operators. We present here the query to compute continuously average of transaction quantities in partitioned windows at (Figure~\ref{fig:partitionedWin})
+\textit{GROUP BY} clause in FlinkCQL have a slight different meaning agains one in SQL. This clause in native SQL is used to collect data across data set and group the results by one or more columns. System then can compute some aggregation functions in each group. However, applying \textit{GROUP BY} operator on a data stream results in several sub-streams distinguished by their ``group keys''. Since the output are streams, we are not able to apply any blocking operators on them.\textit{HAVING} clause is also not applicable in this case. However,  we may obtain a stream of partitioned windows (Figure~\ref{fig:partitionedWin}) when discretizing those sub-streams using window operators. We present here the query to compute continuously average of transaction quantities in partitioned windows at  (Figure~\ref{fig:partitionedWin})
 \begin{lstlisting}
 	SELECT ave(quantity)
 	FROM StockTick [SIZE 2]
@@ -409,7 +411,33 @@ Semantic and Implementation of Continuous Sliding window queries over data strea
 Semantics of Data Streams and Operators
 
 \href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
+
+\subsection*{Streams and Relations}
+As we mentioned, it is nearly impossible to perform non-blocking operators on data streams due to its infinity or velocity. However, those operators usually bring up many useful and concise insights about the recent state of the stream such as joining, aggregation and so on. Stream processing engine offers windowing techniques to restrict the scope of the operators to a finite set of elements from underlying stream. The set of tuples within a window is really closed to concept of relations in traditional database system in terms of 
+\begin{itemize}
+	\item the size of data set is finite so that system can perform all relation-to-relation operators on it.
+	\item Each element of data set belongs to a predefined Schema.
+	\item The order of elements is not a matter, since most of non-blocking operators treat every element equally. 
+\end{itemize} 
+
+For that reason, the concept of relation in data stream was first proposed in CQL \citep{Arasu:2006} for further analysis. 
+
+\begin{defi}
+	A relation R is a partial function mapping from each time instant $t \in \mathbb{T}$ to a finite but unbound set of tuples belonging to the schema of R.
+\end{defi}
+
+In our model, we make a clear different between application and system timestamp. $R(t_{app} = \tau)$ denotes an unordered set of tuples at any application time instant $\tau$ in a condition that $R(t_{app} = -1) = \emptyset$ since function $f$ is not defined. $R(t_{sys} = \tau)$ also implies the tuple at the system time instant if existing because there is at most one tuples at that given time instant. 
+
+\begin{figure}[htbp!] 
+\centering    
+\includegraphics[width=0.7\textwidth]{relation}
+\caption{FlinkCQL operators}
+\label{fig:relation}
+\end{figure}
+
+
 \subsection*{Denotation Language}
+
 \subsection*{Lamda Calculus}
 
 \subsection{Abstract Syntax}
