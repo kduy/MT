@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{fancyvrb}
+\usepackage{semantic}
 
 \begin{document}
 \thispagestyle{empty}
@@ -10,4 +11,10 @@ Some verbatim
 	lines
 \end{Verbatim}
 \noindent Another line
+
+ \[
+       \comp{C1 ; C2}{d} = \mathtt{d’} \quad
+        \texttt{if $\comp{C1}{d} = \mathtt{d’’}$ and
+                   $\comp{C2}{d’’} = \mathtt{d’}$}
+\]
 \end{document}

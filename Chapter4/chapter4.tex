@@ -367,9 +367,6 @@ The Cross transformation combines two data streams into one stream. It builds al
 \end{lstlisting}
 
 
-
-
-
 \subsubsection{Operators}
 \begin{enumerate}
 
@@ -428,6 +425,13 @@ For that reason, the concept of relation in data stream was first proposed in CQ
 
 In our model, we make a clear different between application and system timestamp. $R(t_{app} = \tau)$ denotes an unordered set of tuples at any application time instant $\tau$ in a condition that $R(t_{app} = -1) = \emptyset$ since function $f$ is not defined. $R(t_{sys} = \tau)$ also implies the tuple at the system time instant if existing because there is at most one tuples at that given time instant. 
 
+Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
+\begin{itemize}
+	\item \textbf{Stream-to-Relation} operators: are based on windowing technique. It takes a stream as an input then produces a relation. System continuously buffers and reflects the interested part of the stream as a relation for further process. Relation of a window can be thought of as the set of all tuples within the window.
+	\item  \textbf{Relation-to-Relation} operators: produce a output relation from one or more input relations. The operators are directly inherited from the standard SQL operators as a whole.
+	\item \textbf{Relation-to-Stream} operator is responsible for producing a output stream from a input relation. Flink provides a flatten function to unwrap a windows and convert a windowed stream to normal data stream. Thanks to this function, FlinkCQL perform a single Relation-To-Stream right after finishing \textit{projection} operator (specified on SELECT clause), and produce a new output stream.
+	\item \textbf{Stream-to-Stream} operators: Three of previous operator classes is fully support in CQL. However, it does not support direct operators between stream. To do so, system transforms a stream into relation, perform a chain of relational operators then convert back to stream format. In contrast, Flink allows to transform directly from input streams to output streams on all non-blocking operators and preserves the order of elements in stream.
+\end{itemize}
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{relation}
@@ -437,21 +441,45 @@ In our model, we make a clear different between application and system timestamp
 
 
 \subsection*{Denotation Language}
-
 \subsection*{Lamda Calculus}
-
 \subsection{Abstract Syntax}
-
-
 \subsection{Domain}
-
 \subsection{Denotation Semantics}
 
 
+\subsection*{Stream-to-Stream}
+\begin{enumerate}
+	\item Projection
+	$\mathbb{M}$
+	\item Selection
+	\item Merge/Union
+	\item Split
+	\item Grouping
+	
+\end{enumerate}
+
+\subsection*{Stream-to-Relation}
+\begin{enumerate}
+	\item Application-time based
+	\item System-time based
+	\item Count-based
+\end{enumerate}
+
+\subsection*{Relation-to-Relation}
+\begin{enumerate}
+	\item Projection
+	\item Production
+	\item Join
+	\item Grouping
+	
+\end{enumerate}
+
+\subsection*{Relation-to-Stream}
+
+%$\mathcal{M}$  $\leftsemb \semb{x}$
 
 
-
-
+$\sembrack{abc}$
 
 
 \subsection{Standard Operator}
