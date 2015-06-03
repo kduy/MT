@@ -450,52 +450,82 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 \subsection*{Stream-to-Stream}
 \begin{enumerate}
 	\item Projection
-	$\mathbb{M}$
+	
+	$\mathcal{M}_{S2S}\sembrack{Select(A_1,A_2,..,A_k)} \\
+		{}\qquad= \lambda_S.\{<(v.A_1,v.A_2,...,v.A_k),\tau_{app},\tau_{sys}>: \forall s<v,\tau_{app},\tau_{sys}>\in S \\
+		{}\qquad\land (A_1,A_2,..,A_k) \subset Schema \}$ 
+		
 	\item Selection
+	
+	$\mathcal{M}_{S2S}\sembrack{Where(p)} \\
+		{}\qquad= \lambda_S.\{s: \forall s \in S  \land p(s.v) = true \}$ 
+		
 	\item Merge/Union
+	$\mathcal{M}_{S2S}\sembrack{Merge} \\
+		{}\qquad= \lambda_{S_1}\lambda_{S_1}...\lambda_{S_k}.\{s: s \in S_1 \lor s \in S_1 \lor ... \lor s \in S_k \}$ 
+	
 	\item Split
+	$\mathcal{M}_{S2S}\sembrack{Split} \\
+		{}\qquad= \lambda_{S}.\lambda_{f}.\{s: s \in S \land f(s.v) = true \}$ 
 	\item Grouping
 	
+	$\mathcal{M}_{S2S}\sembrack{GroupBy(A_1,A_2,..,A_k)} \\
+		{}\qquad= \lambda_S.\lambda_{a_1}.\lambda_{a_2}...\lambda_{a_k}.\{s: s \in S  \land  s.v.A_i= a_i \,for\, \forall i \in [1,k]\\
+		{}\qquad\land (A_1,A_2,..,A_k) \subset Schema \}$ 
 \end{enumerate}
 
 \subsection*{Stream-to-Relation}
 \begin{enumerate}
 	\item Application-time based
+	$\mathcal{M}_{S2R}\sembrack{Size\, T\, on\, A} \\
+		{}\qquad= \lambda_S.\lambda_{t_{app}}\{v:  s<v,t_{app}',t_{sys}> \in S  \land t'_{app} = v.A \\
+		{}\qquad max(T-t_{app},0) < t'_{app} \leq t_{app} \}$ 
+		
 	\item System-time based
+	
+	$\mathcal{M}_{S2R}\sembrack{Size\, T\, milliseconds} \\
+		{}\qquad= \lambda_S.\lambda_{t_{sys}}.\{v:  s<v,t_{app},t'_{sys}> \in S  \land 
+		max(T-t_{sys},0) < t'_{sys} \leq t_{sys} \}$ 
+		
 	\item Count-based
+	
+	$\mathcal{M}_{S2R}\sembrack{Size\, N} \\
+		{}\qquad= \lambda_S.\lambda_{t_{sys}}\{v:  s<v,t_{app},t'_{sys}> \in S  \land (t'_{sys} \leq t_{sys}) \\
+		{}\qquad \land (N \geqslant |\{<e'',t''_{app},t''_{sys}> \in S: t'_{sys} \leq t''_{sys} \leq t_{sys}\}|) \}$
 \end{enumerate}
 
 \subsection*{Relation-to-Relation}
 \begin{enumerate}
-	\item Projection
+		
 	\item Production
+	
+	$\mathcal{M}_{R2R}\sembrack{CrossJoin} \\
+		{}\qquad= \lambda_{t_{sys}}.\lambda_{t_{sys}}.\{(e_1,e_2) : e_1 \in E_1 \land e_2 \in E_2 \}$
+		
 	\item Join
+	
+	$\mathcal{M}_{R2R}\sembrack{InnerJoin(a,b)} \\
+		{}\qquad= \lambda_{E_1}.\lambda_{E_2}.\{(e_1,e_2) : e_1 \in E_1 \land e_2 \in E_2 \land e_1.a = e_2.b \land a \in Schema(e_1) \\
+		{}\qquad= \land b \in Schema(e_2) \}$
+		
 	\item Grouping
+	
+		$\mathcal{M}_{R2R}\sembrack{GroupBy(A_1,A_2,..,A_k) Selection(AggFunc)} \\
+		{}\qquad= \lambda_E.\lambda_{a_1}.\lambda_{a_2}...\lambda_{a_k}.\{AggFunc(E)  \land  \forall e \in E, \,\forall i \in [1,k] e.A_i= a_i \, \\
+		{}\qquad\land (A_1,A_2,..,A_k) \subset Schema(e) \}$ 
+	
+	\item Projection
+	
+		$\mathcal{M}_{R2R}\sembrack{Select(A_1,A_2,..,A_k)} \\
+		{}\qquad= \lambda_E.\{(e.A_1,e.A_2,...,e.A_k):e \in E \\
+		{}\qquad\land (A_1,A_2,..,A_k) \subset Schema(e) \}$
 	
 \end{enumerate}
 
 \subsection*{Relation-to-Stream}
-
-%$\mathcal{M}$  $\leftsemb \semb{x}$
-
-
-$\sembrack{abc}$
-
-
-\subsection{Standard Operator}
-\begin{itemize}
-	\item filter $\sigma$
-	\item map $\mu$
-	\item grouping $\gamma$  
-	\item union $\bigcup$
-\end{itemize}
-
-\subsection{Window Operators}
-\begin{itemize}
-\item Time-based Window
-\item Count-based Window
-\item Partitioned Window
-\end{itemize}
+%$\mathcal{M}_{R2S}\sembrack{IStream} \\
+%		{}\qquad= \lambda_R.\lambda_{t_{sys}}.\{v:  s<v,t_{app},t'_{sys}> \in S  \land 
+%		max(T-t_{sys},0) < t'_{sys} \leq t_{sys} \}$ 
 
 
 

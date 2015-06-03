@@ -86,7 +86,7 @@ However, it might arrive after the first log for user \textit{pablo} then system
 
 As we mentions above, in general, time domain is total ordered in local machine, but partial ordered across the system because of possible postpone on processing or asynchronous timestamp at different nodes. From now on, we are going to analyze the execution model of stream processing on logical layer which means that it work like it would on a single machine. Thus, we could assume that time domain is the source for total ordering.
 
-\textbf{\\TODO}: more on Timestamp in Streams \citep{Babcock:2002} page 13
+%\textbf{\\TODO}: more on Timestamp in Streams \citep{Babcock:2002} page 13
 
 \subsection*{Tuple}
 A tuple is a finite sequence of atomic values. Each tuple can be defined by a \textit{Schema} corresponding to a composite type. Tuple can represent a relational tuple, a event or a record of sensor data and so on \citep{Arasu:2006}. For instance, the line of log in previous example follow a schema:
@@ -101,7 +101,7 @@ A data tuple is the fundamental, or atomic data element, embedded in a data stre
 \section{Stream Model}
 
 
-Based on time and tuple domain, basically, CQL in STREAM engine\citep{Arasu:2006} defines a data stream as
+Based on time and tuple domain, basically, CQL in STREAM  \citep{Arasu:2006} engine defines a data stream as
 \begin{defi}
 	A stream $\mathbb{S}$ is a countably continuous and infinite set of elements $s:<v,t> \in \mathbb{S}$, where $v$ is a tuple belonging to the schema of $\mathbb{S}$ and $t \in \mathbb{T}$ is the timestamp of the element. 
 \end{defi}
@@ -143,7 +143,9 @@ With the partial function $f$ to extract an application timestamp value from tup
 
  
 \subsection*{Data Stream Properties} 
-In the data stream model, some of all the input data that are to be operated are not available for random access from disk or memory, but rather arrive as one or more continuous data streams. Data streams differ from the conventional stored relation model in several ways\citep{Babcock:2002}
+In the data stream model, some of all the input data that are to be operated are not available for random access from disk or memory, but rather arrive as one or more continuous data streams. 
+
+%Data streams differ from the conventional stored relation model in several ways\citep{Babcock:2002}
 
 Data Stream may have the following properties \citep{Golab:2010}:
 \begin{itemize}
@@ -157,7 +159,8 @@ Data Stream may have the following properties \citep{Golab:2010}:
 
 \subsection*{Stream Representations}
 \subsubsection*{Base Stream vs. Derived Stream}
-We distinguish 2 kinds of streams: \textit{base stream}(source stream) and \textit{derived stream}. Base stream stream is produced by the sources whereas derived stream is produced by continuous queries and their operators\citep{Arasu:2006}. For example, \citep{Golab:2010} page 17
+We distinguish 2 kinds of streams: \textit{base stream}(source stream) and \textit{derived stream}. Base stream stream is produced by the sources whereas derived stream is produced by continuous queries and their operators\citep{Arasu:2006}. 
+%For example, \citep{Golab:2010} page 17
 From now on, we give example queries on input stream named \textit{StockTick}\citep{StreamBaseTut} and the schema associated with the incoming tuples includes 4 fields:
 \begin{itemize}
 \item \textbf{Symbol}, a string field of maximum length 25 characters that contains the symbol for a stock being traded (e.g. IBM);
@@ -184,16 +187,16 @@ In practice, base stream are almost always append-only, mean that previously arr
 $t_{12} \in [t_1,t_2]$ arrive late at $t_2+\phi$. If the system takes into account of the late arrival element, it will update the previous average volumes at $[t_1, t_2]$. In this case, this derived stream is not append-only. Unfortunately, Flink has not supported Delay function, so that all stream is apparently append-only.
 
 
-\textbf{Note}: another examples from \textbf{epl-guide}
-\textbf{Note}: stock example : http://www.codeproject.com/Articles/553206/An-Introduction-to-Real-Time-Stock-Market-Data-Pro
+%\textbf{Note}: another examples from \textbf{epl-guide}
+%\textbf{Note}: stock example : http://www.codeproject.com/Articles/553206/An-Introduction-to-Real-Time-Stock-Market-Data-Pro
 
 
 \subsubsection*{Logical Stream vs. Physical Stream}
-// TODO : Logical vs. physical stream ?  \citep{Kramer:2009}
+%// TODO : Logical vs. physical stream ?  \citep{Kramer:2009}
 
 Logical stream is a conceptual and abstract data stream which is processed linearly through a series of chaining operators. According to logical data flow graph, one is able to observe the order of operators that data is processed and what are the input and output of process.
 
-Physical stream flow graph indicates how system really process the data in data parallelism environment. Physical operator is replicated and the internal operator state is partitioned and segmented. Figure~\ref{fig:streamRepresent} depict the different between logical and physical data flow.
+Physical stream flow graph indicates how system really process the data in data parallelism environment. Physical operator is replicated and the internal operator state is partitioned and segmented. Figure~\ref{fig:streamRepresent} depicts the different between logical and physical data flow.
 A logical stream from source go straight through an aggregate and a filter operator before written to Sink, whereas physical streams are segmented and go through different internal replica of the same logical operator. Eventually, all physical streams will be merged and written to one Sink. 
 
 %\begin{wrapfigure}{l}{0.7\textwidth} 
