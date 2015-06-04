@@ -160,13 +160,17 @@ Oracle CEP implements time-based execution model so that it reacts to each appli
 \end{enumerate}
 
 
-tuple: each tuple arrival cause a system to react
-time: the progress of tapp cause a system to react
-batch:  where either a new batch arrival or the progress of tapp cause a system to react
+%tuple: each tuple arrival cause a system to react
+%time: the progress of tapp cause a system to react
+%batch:  where either a new batch arrival or the progress of tapp cause a system to react
 
 
-\textbf{TODO} http://blog.mikiobraun.de/2014/01/apache-spark.html
+%\textbf{TODO} http://blog.mikiobraun.de/2014/01/apache-spark.html
+Recently, Apache Spark~\citep{spark} and Apache Storm~\citep{storm} have introduced a technique called \textit{micro-batching}~\citep{Zaharia:2012}. In which, operators treat a stream as a continuous series of small batches or chunks of data covered within a tiny time internals. The basic abstraction of Spark streaming , a discretized stream,  is represented by a infinite sequence of RDDs(Resilient Distributed Datasets) which is immutable and distributed storage abstraction of Spark. Each RDD contains data from a certain interval. In short, the granular level of Spark stream is a micro-batch of tuples, rather than a individual tuple which is presented in previous execution model. It seems that limiting abstract level of stream to a batch, it makes less sense of a true record-by-record processing~\citep{Shahrivari:2014}.
 
+%\\TODO:http://www.sqlstream.com/blog/2015/03/5-reasons-why-spark-streamings-batch-processing-of-data-streams-is-not-stream-processing/
+%\\TODO: https://www.cs.berkeley.edu/~matei/papers/2012/hotcloud_spark_streaming.pdf
+%\\TODO: http://hortonworks.com/blog/apache-storm-design-pattern-micro-batching/ 
 
 \section{Policy-based Window Semantics in Flink}
 

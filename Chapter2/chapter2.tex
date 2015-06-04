@@ -152,7 +152,7 @@ Data Stream may have the following properties \citep{Golab:2010}:
 	\item They are considered as sequences of records, ordered by arrival time or by another ordered attributed such as generation time which is explicitly specified in schema, that arrive for processing over time instead of being available a priori. Totally order by time. 
 	\item They are emitted by a variety of external sources. Therefore, the system has no control over the arrival order or data rate, either within a stream or across multiple streams
 	\item They are produced continually and, therefore, have unbounded, or at least unknown, length. Thus, a DSMS may not know if or when the stream ``ends''. We may set a time-out waiting for new event. Exceeding the time-out, the stream considerably terminated. 
-	\item Typically, big volume of data arrives at very high speed so that data need to process on the fly. Once an element from a data stream model has been processed it is discarded or archived. Stream elements cannot be retrieved, unless it is explicitly stored in storage or memory, which typically is small relative to the size of the data stream. \citep{Babcock:2002}
+	\item Typically, big volume of data arrives at very high speed so that data need to process on the fly. Once an element from a data stream model has been processed it is discarded or archived. Stream elements cannot be retrieved, unless it is explicitly stored in storage or memory, which typically is small relative to the size of the data stream\citep{Babcock:2002}.
 	
 \end{itemize}
 
@@ -219,14 +219,10 @@ A logical stream from source go straight through an aggregate and a filter opera
     
 \section{Stream Windows}
 
-Why do we need window?
+From the system's point of view, it is often infeasible to maintain the entire history of the input data stream. Because data stream is running infinitely, we may not know exactly when it ends. It nearly impossible to query over the entire stream with some operators such as sum, average. Accumulating a tuple attribute for entire stream may results to a very big value causing  buffer overflow.  When a bounded amount of memory is limited, hence it is barely capable of producing exact answers for data stream queries. Nevertheless, high-quality approximate answers are often acceptable instead. 
 
-From the system's point of view, it is often infeasible to maintain the entire history of the input data stream. Because data stream is running infinitely, we do not know when it ends. It nearly impossible to query over the entire stream with some operators such as sum, average. Accumulating a tuple attribute for entire stream may results to a very big value causing  buffer overflow. From the user's point of view, recently data may be insight and more useful to make a data-driven decision. Those reasons motivated the user of windows to restrict to the scope of continuous queries. 
+We have seen many techniques to tackle the problem such as sketches, random sampling, histogram and so on. However, the most preferred technique is windowing technique which continually runs queries over recent portion of data stream  in lieu of then entire of its past history. For examples, every 10 minutes, asking for total numbers of transaction happened last hour only. The semantic of window is clear and well-defined that makes it easy to operated by system and understood by users. The size of window is relatively smaller than size of stream so that system can keep latency of computation low.  More importantly, from the user's point of view, recent data may be more insightful and informative to make a data-driven decision immediately. Those reasons motivated the use of windows to restrict to the scope of continuous queries. Indeed, many stateful stream processing operators are designed to work on windows of tuples, making it a fundamental concept in stream processing. Therefore, a stream processing language must have rich windowing semantics to support the large diversity in how stream processing engine can consume data on a continuous basis.
 
-Many stateful stream processing operators are designed to work on windows of tuples, making it a fundamental concept in stream processing. Therefore, a stream processing language must have rich windowing semantics to support the large diversity in how stream processing engine can consume data on a continuous basis.
-
-
-// TODO: Approximate Query Answering: (Models and issues in data stream systems)
 
 \begin{defi}
 A \textbf{Window} $W$ over a stream $\mathbb{S}$ is a finite subset of stream $\mathbb{S}$ \cite{Dindar:2013}
@@ -272,7 +268,7 @@ Windows can be construct according to (window specification) that defines what t
 
 Window may be classified according the following criteria:
 
-\subsection{Direction of movement}
+\subsection{Direction of movements}
 Window can fixed or sliding along the stream.
 \begin{itemize}
 
@@ -397,7 +393,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 \label{fig:partitionedWin}
 \end{figure}
 	
-	\textbf{TODO: check Towards a Streaming SQL standard page 1385}
+%	\textbf{TODO: check Towards a Streaming SQL standard page 1385}
 	
 	
 	
@@ -411,17 +407,16 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 %In practice, tumbling windows, such as the one-minute windows in query Q1 from Sec- tion 2.1.1, are popular due to the simplicity of their implementation—at the end of each window, the query resets its state and starts over. Forward-sliding windows (time-based and count-based) are also appealing due to their intuitive semantics, especially with joins and aggregation, as we will discuss below. However, sliding windows are more difficult to implement than tumbling windows; over time, a continuous query must insert new tuples into a window and remove expired tuples that have fallen out of the window range.
 
 
-(check Sliding Window Query Processing over Data Stream pages 25)
+%\textbf{//TODO}:(check Sliding Window Query Processing over Data Stream pages 25)
 
 
-The notion of sliding windows requires at least an ordering on data stream elements. In many cases, the arrival orders of the elements suffices as an \"implicit timestamp\" attached to each data element. However, sometimes it is preferable to user \"explicit timestamp\" provided as part of data stream. Formally, we say that a data stream consists of a set of (tuple, timestamp) pairs. Timestamp attribute could be a traditional timestamp or it could be a sequence number - all that is required is that it come from a totally ordered domain with a distance metric. The ordering induced by the timestamp is used when selecting the data elements making up a sliding window. 
+%The notion of sliding windows requires at least an ordering on data stream elements. In many cases, the arrival orders of the elements suffices as an \"implicit timestamp\" attached to each data element. However, sometimes it is preferable to user \"explicit timestamp\" provided as part of data stream. Formally, we say that a data stream consists of a set of (tuple, timestamp) pairs. Timestamp attribute could be a traditional timestamp or it could be a sequence number - all that is required is that it come from a totally ordered domain with a distance metric. The ordering induced by the timestamp is used when selecting the data elements making up a sliding window. 
 
 
-\textbf{Notes}: in CQL tuple-based sliding window may be non-deterministic - and therefore may not be appropriate - when timestamp are not unique
+%\textbf{Notes}: in CQL tuple-based sliding window may be non-deterministic - and therefore may not be appropriate - when timestamp are not unique
 
-\textbf{Notes}: Streambase: tuple-at-a-time
 
-\textbf{Notes}: Tuple relational calculus by Edgar F. Codd
+%\textbf{Notes}: Tuple relational calculus by Edgar F. Codd
 
-\textbf{Notes}: \href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
+%\textbf{Notes}: \href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
 

@@ -11,7 +11,7 @@
 \fi
 
 
-\section*{Big Data}
+\subsection*{Big Data}
 In the last few years Big Data generated a lot of buzz along with the launch of several successful big data products. Thanks to contribution from open source community and several giant Internet companies, the big data ecosystem has now approached a tipping point, where the basic infrastructure capabilities of supporting big data challenges are easily available. Entering the next generation of big data, so-called Big Data 2.0, two of its concentrated areas are Velocity and Applications, besides Data Quality. The cause for the former is that data is growing at an exponential rate and the ability to analyse it faster is more important than ever. For instance, sensors can generate data on millions of events per second and store all of those data and response in real-time is non trivial. The latter is helping to overcome the technical challenges of existing frameworks by making them easy to use and understand for everyone to benefit from big data.
 
 As a result, the demand for streaming processing is increasing a lot these days. Processing big volume of data is not sufficient in the cases that infinite streaming data is arriving at high speed and users require a system to process fast and react to any incident immediately. In addition, although hardware price has plunged year over year, it’s still expensive to equip a storage which is growing terabytes every day for batch analysis.  Streaming processing engines are designed to operate high volume in real time with a scalable, high available and fault tolerant architecture.
@@ -20,7 +20,7 @@ As a result, the demand for streaming processing is increasing a lot these days.
 
 
 
-\section*{Data Streaming}
+\subsection*{Data Streaming}
 Streaming Processing is not a new concept. Indeed the similar concept, Complex Event Processing (CPE) had been proposed from the 1990s by Event Simulation Research at Stanford \citep{Luckham:2001}. Since that time, people have started generating a lot of different buzzwords around it and often reinventing ideas borrowing from other fields, but using a different vocabularies to describe the same concepts. Basically, the idea is to analyse one or multiple data streams to identify meaningful phenomena and respond to them as quickly as possible. 
 
 
@@ -30,7 +30,7 @@ According to CEP Tooling Market Survey 2014 [3], since 1996, there has existed m
 However, since a massive amount of data is growing rapidly every second, Hadoop is emerging distributed processing ecosystem today. Thanks to Hadoop, people can build a large scalable distributed system on Cloud. Even though Hadoop is designed to scale system up to thousands of machines with very high degree of fault tolerance, it is optimised to run batch jobs with a huge load of computation. Because of time factor, Hadoop has limited value in online environment where fast processing is crucial. Therefore, existing CEP solutions are barely compatible with Hadoop ecosystem.  We demand a new sort of streaming framework which is able to integrate on top of Hadoop system. Apache Flink is one of these frameworks.
 
 
-\section*{Apache Flink}
+\subsection*{Apache Flink}
 
 Apache Flink is an open source platform for scalable batch and stream data processing. Several innovative features make Flink standout from the Big Data world:
 
@@ -52,12 +52,12 @@ Apache Flink is an open source platform for scalable batch and stream data proce
 
 Flink contains APIs in Java and Scala for analyzing data from batch and streaming data sources, as well as its own optimizer and distributed runtime with custom memory management (Figure~\ref{fig:flink})
 
-However, similar to most of big data frameworks providing such rich imperative APIs only, Flink is still struggling to gain traction from business interests in terms of interaction UX.  First, users must spend time learning API documentation properly since those APIs are fairly new to them. Therefore, the cycle time to develop products taking longer. Second, given that most big data applications are fairly simple application-wise, a block of API codes might be less optimal to use for most the popular queries. We tackle solving the problem by building a extended version of ubiquitous SQL language on application layer of Flink. Since SQL is so popular, compact, well-design and easy to use, it is the most suitable choice to build up. In the first step, this thesis aims to analyze and implement an SQL-extension (FlinkCQL - Flink Continuous Query Language) for Stream Processing Engine in Flink.
+However, similar to most of big data frameworks providing such rich APIs for imperative programing only, Flink is still struggling to gain traction from enterprise in relation of interaction UX.  First, users must spend time learning API documentation properly since those APIs are fairly new to them. Therefore, the cycle time to develop products taking longer. Second, given that most big data applications are fairly simple application-wise, a block of API codes might be less optimal to use for most the popular queries. We tackle solving the problem by building a extended version of ubiquitous SQL language on application layer of Flink. Since SQL is so popular, compact, well-design and easy to use, it is the most suitable choice to rely on for our extension. In the first step, this thesis aims to analyze and implement an SQL-extension (FlinkCQL - Flink Continuous Query Language) for Stream Processing Engine in Flink.
 
-\section*{FlinkCQL and related works}
-\textbf{TODO}: missing
+\subsection*{FlinkCQL and related works}
+\textbf{//TODO}: missing
 
-\section*{Structure}
+\subsection*{Structure}
 We organize the thesis falls into 4 chapters:
 \begin{itemize}
 	\item Chapter 2: Data Stream Model in explains. The chapter describes the concept of data stream and what different between data stream and traditional database. 
