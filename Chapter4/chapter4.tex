@@ -357,7 +357,7 @@ The Join transformation produces a new tuple data stream with two fields. Each t
 The Cross transformation combines two data streams into one stream. It builds all pairwise combinations of the elements of both input data streams in the current window, i.e., it builds a temporal Cartesian product.
 
 
-\textbf{TODO}: examples in \citep{Kramer:2009} page 14
+%\textbf{TODO}: examples in \citep{Kramer:2009} page 14
 \subsubsection*{GROUP BY clause}
 \textit{GROUP BY} clause in FlinkCQL have a slight different meaning agains one in SQL. This clause in native SQL is used to collect data across data set and group the results by one or more columns. System then can compute some aggregation functions in each group. However, applying \textit{GROUP BY} operator on a data stream results in several sub-streams distinguished by their ``group keys''. Since the output are streams, we are not able to apply any blocking operators on them.\textit{HAVING} clause is also not applicable in this case. However,  we may obtain a stream of partitioned windows (Figure~\ref{fig:partitionedWin}) when discretizing those sub-streams using window operators. We present here the query to compute continuously average of transaction quantities in partitioned windows at  (Figure~\ref{fig:partitionedWin})
 \begin{lstlisting}
@@ -407,7 +407,7 @@ Semantic and Implementation of Continuous Sliding window queries over data strea
 \section{Continuous Query Semantics and Operators} \label{semantic}
 Semantics of Data Streams and Operators
 
-\href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
+%\href{http://en.wikipedia.org/wiki/Relational\_algebra}{http://en.wikipedia.org/wiki/Relational\_algebra}
 
 \subsection*{Streams and Relations}
 As we mentioned, it is nearly impossible to perform non-blocking operators on data streams due to its infinity or velocity. However, those operators usually bring up many useful and concise insights about the recent state of the stream such as joining, aggregation and so on. Stream processing engine offers windowing techniques to restrict the scope of the operators to a finite set of elements from underlying stream. The set of tuples within a window is really closed to concept of relations in traditional database system in terms of 
@@ -440,11 +440,11 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 \end{figure}
 
 
-\subsection*{Denotation Language}
-\subsection*{Lamda Calculus}
-\subsection{Abstract Syntax}
-\subsection{Domain}
-\subsection{Denotation Semantics}
+%\subsection*{Denotation Language}
+%\subsection*{Lamda Calculus}
+%\subsection{Abstract Syntax}
+%\subsection{Domain}
+%\subsection{Denotation Semantics}
 
 
 \subsection*{Stream-to-Stream}
