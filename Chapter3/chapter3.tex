@@ -231,7 +231,7 @@ StockTick.window(Count.of(100))
 \end{verbatim}
 
 \section{The execution models in Flink}
-We present here the execution models of Flink Stream Processing engine. Tick model specifies how the engine reacts to new tuple arrival while Window Construction show the way Flink constructs and emits a complete window based on window specifications. There are pretty many reviews on window construction (\textbf{\\TODO}: which?) ... However, none of them give a full description in the case that we mix up time-based and count-based specification for window size and slide.  
+We present here the execution models of Flink Stream Processing engine. Tick model specifies how the engine reacts to new tuple arrival while Window Construction show the way Flink constructs and emits a complete window based on window specifications. There are pretty many reviews on window constructions(\citep{Kramer:2009}, \citep{Arasu:2004}, \citep{Ghanem:2008}, \citep{Law:2011}, \citep{Dindar:2013},\citep{Patroumpas:2006}, \citep{Jain:2008}) However, none of them give a full description in the case that we mix up time-based and count-based specification for window size and slide.  
 
 
 %\begin{verbatim}
@@ -421,7 +421,7 @@ The upper boundary of the $k$th window is $u_k = u_1 + k.\beta_t$
 \label{fig:timebased_slide}
 \end{figure}
 
-In count-based slide, supposed that $u_1$ is the system timestamp of last element of the first window, the last element $s<v,_,t_k>$ of the $k$th window must satisfies $|{s \in \mathbb{S}(t_{sys}): u_1 < s.t_{sys} \leq u_2}| = n.\omega_c$
+In count-based slide, supposed that $u_1$ is the system timestamp of last element of the first window, the last element $s<v,_,t_k>$ of the $k_{th}$ window must satisfies $|{s \in \mathbb{S}(t_{sys}): u_1 < s.t_{sys} \leq u_2}| = n.\omega_c$
 
 \begin{figure}[htbp!] 
 \centering    
@@ -436,8 +436,8 @@ In time-based windows, windows are defined in terms of of timestamp. Supposed th
 
 \begin{figure}[htbp!] 
 \centering    
-\includegraphics[width=0.5\textwidth]{timebased_slide}
-\caption{time-based slide}
+\includegraphics[width=0.5\textwidth]{timebased_window}
+\caption{time-based window}
 \label{fig:timebased_window}
 \end{figure}
 
@@ -445,7 +445,7 @@ In time-based windows, windows are defined in terms of of timestamp. Supposed th
 \item Using application timestamp. The window content is $W = \{s:<v, t_{app},\_> \in \mathbb{S} \wedge max(0, u_k - \omega_{t_{app}}) < t_{app} \leq u_k\}$ where $u_k$ is upper boundary of window in application timestamp unit
 
 
-\item using system timestamp. The window content is $W = \{s:<v,\_, t_{sys}> \in \mathbb{S} \wedge max (0, u_k - \omega_{t_{sys}}) < t_{sys} \leq u_k\}$ where $u_k$ is upper boundary of window in system timestamp unit
+\item using system timestamp. The window content is $W = \{s:<v,\_, t_{sys}> \in \mathbb{S} \wedge max (0, u_k - \omega_{t_{sys}}) < t_{sys} \leq u_k\}$ where $u_k$ is upper boundary of window in system timestamp unit. 
 \end{itemize} 
 
 
@@ -454,9 +454,9 @@ $W=\{s:<v, \_, t_{sys}> \in \mathbb{S} \wedge t_{sys} \leq u_k \wedge  |\{<v,\_,
 
 \begin{figure}[htbp!] 
 \centering    
-\includegraphics[width=0.5\textwidth]{countbased_slide}
-\caption{count-based slide}
-\label{fig:countbased_slide}
+\includegraphics[width=0.5\textwidth]{countbased_window}
+\caption{count-based window}
+\label{fig:countbased_window}
 \end{figure}
 
 
