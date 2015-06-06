@@ -202,7 +202,8 @@ The count-based window $W_{c}$ is independent from application timestamp $t_{app
 \item \textbf{Trigger Policy}: In general, it defines window slide or the distance between 2 consecutive windows. On previous example , trigger policy states that from beginning, system must trigger a new window every 10 minutes. No other window would be triggered in between.
 
 Supposed that we have 2 consecutive windows $W_1 = (l_1, u_1, \omega)$ and $W_2 = (l_2, u_2, \omega)$  where $l_1 < l_2$. There is no window $W' = (l_3, u_3, \omega)$ such that $l_1< l_3 < l_2$.
-\begin{defi}
+
+\begin{defi}~\label{defi:window_slide}
 The distance or slide between 2 windows $W_1$ and $W_2$ is the distance between two of their upper-bound tuple as
 \begin{itemize}
 
@@ -231,9 +232,9 @@ StockTick.window(Count.of(100))
 \end{verbatim}
 
 \section{The execution models in Flink}
-We present here the execution models of Flink Stream Processing engine. Tick model specifies how the engine reacts to new tuple arrival while Window Construction show the way Flink constructs and emits a complete window based on window specifications. There are pretty many reviews on window constructions(\citep{Kramer:2009}, \citep{Arasu:2004}, \citep{Ghanem:2008}, \citep{Law:2011}, \citep{Dindar:2013},\citep{Patroumpas:2006}, \citep{Jain:2008}) However, none of them give a full description in the case that we mix up time-based and count-based specification for window size and slide.  
+We present here the execution models of Flink Stream Processing engine. Tick model specifies how the engine reacts to new tuple arrival while Window Construction show the way Flink constructs and emits a complete window based on window specifications. There are pretty many reviews on window constructions(\citep{Kramer:2009}, \citep{Arasu:2004}, \citep{Ghanem:2008}, \citep{Law:2011}, \citep{Dindar:2013},\citep{Patroumpas:2006}, \citep{Jain:2008}). However, none of them give a full description in the case that we combine time-based and count-based specification for window size and slide.  
 
-
+In this section, we will fully describe Flink execution model in details.
 %\begin{verbatim}
 %
 %		boolean isTriggered = false;
@@ -250,22 +251,15 @@ We present here the execution models of Flink Stream Processing engine. Tick mod
 %
 %\end{verbatim}
 
-Window Buffer \textit{wb} is a linking list contain tuples with composite type $IN$
+As we mentioned, basically, Flink engine borrows a window buffer to construct a window. Window Buffer \textit{wb} is a linking list contain tuples with composite type $IN$. Flink is able to add a new arriving tuple to the end of window buffer, remove obsolete tuples at the beginning of window buffer or emit a whole buffer to derived stream of windows. 
 
-
-
-%\begin{equation}
-%	t = 
-%	\begin{cases}
-%		t_{sys} \qquad if\,t_{app} = None\\
-%		   \\
-%		t_{app} \qquad\qquad\qquad otherwise
-%	\end{cases}
-%\end{equation}
+We define a logical size of window buffer according to the range of timestamp. The logical size is used when window is specified by timestamp such as window of last 5 seconds e.g., logical size of window is 5 seconds:
 
 $size_{t}(wb) = wb.last.t - wb.first.t$
 
-$size_c(wb) = wb.length()$
+In other hand, we also state that physical size of window buffer is the number of tuples stored in buffer $wb$:
+
+$size_c(wb) = wb.length$
 
 
 \begin{algorithm}
@@ -367,26 +361,26 @@ When a new tuple has arrive, system check whether the current window buffer reac
 
 
 \subsection{Tick Model}
-As we mentioned in \ref{Heterogeneity}, there are three common Tick execution models\citep{Dindar:2013} implemented in various systems. STREAM and Oracle CEP implements time-driven model which reacts once to all tuples with an identical application timestamp. Coral 8 with batch-driven model takes action on an atomic batch which may contain multiple tuples with the same batch-id. Flink and StreamBase with tuple-driven model actively trigger actions on every new arrived tuple.
+As we mentioned in \ref{Heterogeneity}, there are three common Tick execution models\citep{Dindar:2013} implemented in various systems. STREAM and Oracle CEP implements time-driven model which reacts once to all tuples with an identical application timestamp. Coral 8 with batch-driven model takes action on an atomic batch which may contain multiple tuples with the same batch-id. Flink and StreamBase with tuple-driven model actively trigger actions on every new arriving tuple.
 
-In Flink, tuples are strictly totally ordered based on its system-assigned timestamp. We describe a procedure taken place on a recent arrived tuple in method \textit{processNewTuple}  (of Algorithm\ref{algorithm:processNewTuple}). 
+In Flink, tuples are strictly totally ordered based on its system-assigned timestamp. We describe a procedure taken place on a recent arrived tuple in method \textit{processNewTuple}  (in Algorithm~\ref{algorithm:processNewTuple}). 
 System takes action on new tuples one by one due to its moment of arrival. 
-Basically, Flink employs a linked list as a window buffer to temporarily store a queue of arrived tuples. New tuple will be added to window buffer whereas old tuples will be removed from window buffer according to eviction policy.
+Again, Flink employs a window buffer to temporarily store a queue of arrived tuples. New tuple will be added to window buffer whereas old tuples will be removed from window buffer according to eviction policy.
 
 Whenever a new tuple has arrived, the procedure is as following:
 \begin{itemize}
-\item \textbf{Step 1:} The system checks whether the stream reached the point where it should emit the current window buffer to windowed stream and trigger a new window. The condition to trigger a new window is represented in method \textit{notifyTrigger} (in algorithm \ref{algorithm:notifyTrigger}). If the condition is satisfied and window buffer is not empty, system will emit the current window buffer to discretized Windowed Stream for later computation.  
+\item \textbf{Step 1:} The system checks whether the stream reached the point where it should emit the current window buffer to windowed stream and trigger a new window. The condition to trigger a new window is represented in method \textit{notifyTrigger} (in Algorithm~\ref{algorithm:notifyTrigger}). If the condition is satisfied and window buffer is not empty, system will emit the current window buffer to discretized Windowed Stream for later computation.  
 
 In method \textit{notifyTrigger}, system decides to trigger a new window according to trigger policy defined in window specification. 
-Supposed that the previous emitted window is $W^1$, the current window buffer is $wb$, and new arrived tuple $s$.
-If the distance between $W^1$ and $\textrm{wb} \bigcup \{s\}$ start exceeding slide size $\beta$ (defined in window specification), system confirms the trigger point and reset the slide measurement:
+Supposed that the previous emitted window is $W_1$, the current window buffer is $wb$, and new arrived tuple $s$.
+If the distance between $W_1$ and ($wb\, \bigcup\, \{s\}$) starts exceeding slide size $\beta$ (defined in window specification), system confirms the trigger point and reset the slide measurement:
 \begin{itemize}
 \item If the slide is time-based, set timestamp of new upper boundaries as \textit{lastUpperBound}
 \item If the slide is count-based, reset counter to 1
 
 \end{itemize}
 
-Notice that system has not inserted new tuple to window buffer yet, but at last step.
+Notice that system has not inserted new tuple to window buffer yet, but at \textbf{Step 3}.
 
 \item \textbf{Step 2: }evict old tuples in window buffer.
 Supposed that system adds new tuple to window buffer, system evicts a number of oldest tuples so that size of the buffer does not exceed pre-defined window size $\omega$. This eviction policy is activated whenever a new tuple has arrived to ensure that window buffer size  never exceed $\omega$
@@ -394,25 +388,23 @@ Supposed that system adds new tuple to window buffer, system evicts a number of 
 	\item if the window is time-based, time interval cover the window is not bigger than $\omega_t$
 	\item if the window is tuple-based, number of tuples in the window does not exceed $\omega_c$
 \end{itemize}
-\item \textbf{Step 3:} officially insert new tuple to window buffer.
+\item \textbf{Step 3:} officially inserts new tuple to window buffer.
 \end{itemize}
 
 In short, we figure out some crucial properties of Tick model in Flink
 \begin{itemize}
-\item Flink implements tuple-driven model reacting to every new arrived tuple.
-\item The eviction policy is to keep size of window buffer shrink shrunk to pre-defined window size $\omega$
-\item One is able to mix up different type of window and slide size. For instance, tuple-based window slide by time interval.
+\item Flink implements tuple-driven model reacting to every new arriving tuple.
+\item The eviction policy is to keep size of window buffer shrunk to pre-defined window size $\omega$. Flink executes its eviction policy whenever a new tuple has arrived but executes its trigger policy only when \textit{notifyTrigger} function returns a true.
+\item One is able to mix different type of windows and slide. For instance, tuple-based window slide by time interval.
 \end{itemize}
 
 
 
 \subsection{Window Constructions}
-We are able to define window and slide size based on application timestamp, system timestamp or number of tuple. Therefore, we have 9 ways to construct a basic window with combination of window and slide size.
-
+We are able to define window and slide size based on one of 3 factors: application timestamp, system timestamp or number of tuples. Therefore, we have 9 ways to construct a basic window with combination of window and slide size. Naturally, each window will have a upper bound an a lower bound. This session will show how they are related to window size and slide.
 
 \subsubsection{Upper boundary}
-In time-based slide,  supposed that $u_1$ is  the upper boundary of the first window. 
-The upper boundary of the $k$th window is $u_k = u_1 + k.\beta_t$
+In time-based slide,  supposed that $u_1$ is  the upper boundary of the first window and $\beta_t$ is the slide size in either system or application timestamp value. According to the definition of window slide (~\ref{defi:window_slide}),we deduce that the upper boundary of the $k^{th}$ window is $u_k = u_1 + k.\beta_t$
 
 \begin{figure}[htbp!] 
 \centering    
@@ -421,7 +413,7 @@ The upper boundary of the $k$th window is $u_k = u_1 + k.\beta_t$
 \label{fig:timebased_slide}
 \end{figure}
 
-In count-based slide, supposed that $u_1$ is the system timestamp of last element of the first window, the last element $s<v,_,t_k>$ of the $k_{th}$ window must satisfies $|{s \in \mathbb{S}(t_{sys}): u_1 < s.t_{sys} \leq u_2}| = n.\omega_c$
+Similarly, in count-based slide, supposed that $u_1$ is the system timestamp of last element of the first window, the last element $s<v,_,t_k>$ of the $k^{th}$ window must satisfies $|{s \in \mathbb{S}(t_{sys}): u_1 < s.t_{sys} \leq u_2}| = k.\omega_c$
 
 \begin{figure}[htbp!] 
 \centering    
@@ -432,7 +424,7 @@ In count-based slide, supposed that $u_1$ is the system timestamp of last elemen
 
 \subsubsection{Lower boundary}
 
-In time-based windows, windows are defined in terms of of timestamp. Supposed that we know the upper bound $u_k$ of the $k$ window. The lower bound $l_k = max(0, u_k - \beta_t)$
+In time-based windows, windows are defined in terms of of timestamp. Supposed that we know the upper bound $u_k$ of the $k$ window. The lower bound $l_k = max(0, u_k - \omega_t)$ with $\omega_t$ is the logical size of windows in timestamp.
 
 \begin{figure}[htbp!] 
 \centering    
@@ -442,10 +434,10 @@ In time-based windows, windows are defined in terms of of timestamp. Supposed th
 \end{figure}
 
 \begin{itemize}
-\item Using application timestamp. The window content is $W = \{s:<v, t_{app},\_> \in \mathbb{S} \wedge max(0, u_k - \omega_{t_{app}}) < t_{app} \leq u_k\}$ where $u_k$ is upper boundary of window in application timestamp unit
+\item Using application timestamp. The window content is $W = \{s:<v, t_{app},\_> \in \mathbb{S} \wedge max(0, u_k - \omega_{t_{app}}) < t_{app} \leq u_k\}$ where $u_k$ is upper boundary of window and $\omega_{t_{app}}$ is the size of window in application timestamp unit
 
 
-\item using system timestamp. The window content is $W = \{s:<v,\_, t_{sys}> \in \mathbb{S} \wedge max (0, u_k - \omega_{t_{sys}}) < t_{sys} \leq u_k\}$ where $u_k$ is upper boundary of window in system timestamp unit. 
+\item Using system timestamp. The window content is $W = \{s:<v,\_, t_{sys}> \in \mathbb{S} \wedge max (0, u_k - \omega_{t_{sys}}) < t_{sys} \leq u_k\}$ where $u_k$ is upper boundary of window and $\omega_{t_{sys}}$ is the size of window in system timestamp unit. 
 \end{itemize} 
 
 
