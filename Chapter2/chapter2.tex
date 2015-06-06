@@ -268,10 +268,10 @@ Windows can be constructed according to \textit{window specification} that defin
 Window can fixed or sliding along the stream.
 \begin{itemize}
 
-\item Fixed Window:  has both upper-bound and lower-bound fixed. Therefore the window is evaluated only once and capture a constant portion information of stream. For instance, window stores the transactions generated in 2 hours from ''2015/01/01 12:00:00" to ''2015/01/01 14:00:00"
+\item \textbf{Fixed Window}:  has both upper-bound and lower-bound fixed. Therefore the window is evaluated only once and captures a constant portion information of stream. For instance, window stores the transactions generated in 2 hours from ''2015/01/01 12:00:00" to ''2015/01/01 14:00:00"
 
-\item Landmark Window: One of the bounds remains  anchored at a specific system timestamp. The other edge of the window is allowed to move freely. Usually, the lower-bound is fixed, and the upper-bound shifted forward in pace with time progression.
-For example, windows capture all transaction from 1a.m once every hour. Figure~\ref{fig:landMarkWin}
+\item \textbf{Landmark Window}: One of the bounds remains  anchored at a specific system timestamp. The other edge of the window is allowed to move freely. Usually, the lower-bound is fixed, and the upper-bound shifted forward in pace with time progression.
+For example, windows capture all transaction from 1 a.m once every hour (Figure~\ref{fig:landMarkWin}).
 
 \begin{figure}[htbp!] 
 \centering    
@@ -280,22 +280,22 @@ For example, windows capture all transaction from 1a.m once every hour. Figure~\
 \label{fig:landMarkWin}
 \end{figure}
 
-Up to 4am, the stream contains 3 window 
+Up to 4 a.m, the stream contains 3 windows: 
 \begin{itemize}
 \item $W_1(1,2):\{s_1\}$ 
-\item $W_2(1,3):{s_1, s_2, s_3}$ 
-\item $W_3(1,4):{s_1, s_2, s_3, s_4,s_5}$ 
+\item $W_2(1,3):\{s_1, s_2, s_3\}$ 
+\item $W_3(1,4):\{s_1, s_2, s_3, s_4,s_5\}$ 
 \end{itemize}
 
-\item Sliding window: the width of the window may be fixed in term of logical unit (i.e., time interval units) or physical unit (i.e., tuple count in window). However, the boundaries of windows change overtime along the stream.
+\item \textbf{Sliding window}: the width of the window may be fixed in term of logical unit (i.e., time interval unit) or physical unit (i.e., tuple count in window). However, the boundaries of windows change overtime along the stream.
 
 For example, window contains last 3 transactions once every 1 transaction passed. Up to 4am, the stream contains 5 windows. Figure~\ref{fig:slideWin}
 \begin{itemize}
 \item $W_1:\{s_1\}$ : at the beginning there is only tuple $s_1$ on stream
-\item $W_2:{s_1, s_2}$ there are only tuple $s_1$ and $s_2$ on stream. Window may take up to 3 tuples so that both $s_1$ and $s_2$ are included  
-\item $W_3:{s_1, s_2, s_3}$ 
-\item $W_4:{s_2, s_3, s_4}$ there are 4 tuples on stream but window can take last 3 tuples only. Therefore, window buffer will insert $s_4$ and drop $s_1$
-\item $W_5:{s_3, s_4,s_5}$  window buffer insert $s_5$ and drop $s_2$
+\item $W_2:\{s_1, s_2\}$ there are only tuple $s_1$ and $s_2$ on stream. Window may take up to 3 tuples so that both $s_1$ and $s_2$ are included  
+\item $W_3:\{s_1, s_2, s_3\}$ 
+\item $W_4:\{s_2, s_3, s_4\}$ there are 4 tuples on stream but window can take last 3 tuples only. Therefore, window buffer will insert $s_4$ and drop $s_1$
+\item $W_5:\{s_3, s_4,s_5\}$  window buffer insert $s_5$ and drop $s_2$
 \end{itemize}
 
 \begin{figure}[htbp!] 
@@ -306,10 +306,9 @@ For example, window contains last 3 transactions once every 1 transaction passed
 \end{figure}
 
 
+\item \textbf{Tumbling window}: a particular sliding window where the boundaries move is equal to the window's width. Windows are disjoint or non-overlapped each other. However, windowed stream will still cover all elements on based stream.
 
-\item Tumbling window: a particular sliding window where the boundaries move is equal to the window's width. Windows are disjoint or non-overlapped each other. Windowed stream will cover all elements on based stream.
-
-Example: For example, window contains last 2 transactions once every 2 transaction passed. Up to 5am, the stream contains 3 windows. Figure~\ref{fig:tumblingWin}
+For example, window contains last 2 transactions once every 2 transaction passed. Up to 5 a.m, the stream contains 3 windows (Figure~\ref{fig:tumblingWin})
 
 \begin{itemize}
 \item $W_1:\{s_1,s_2\}$ 
@@ -325,10 +324,10 @@ Example: For example, window contains last 2 transactions once every 2 transacti
 \end{figure}
 
 
-\item Jumping window: a particular sliding window where the boundaries move is larger than the window's width. Windows are disjoint or non-overlapped each other but some of tuples may be discarded. For example, window contains last 2 transactions once every 4 transaction passed. Up to 5am, the stream contains 2 windows. Figure~\ref{fig:jumpingWin}
+\item \textbf{Jumping window}: a particular sliding window where the boundaries move is larger than the window's width. Windows are disjoint or non-overlapped each other but some of tuples may be discarded. For example, window contains last 2 transactions once every 4 transaction passed. Up to 5am, the stream contains 2 windows (Figure~\ref{fig:jumpingWin})
 \begin{itemize}
-\item $W_1:\{s_3,s_4\}$ When $s_4$ has arrived, window buffer contains 4 tuples $\{s_1,s_2,s_3,s_4\}$ but window's width is 2 so that $\{s_1,s_2\}$ will be evicted from window. Window buffer keeps $\{s_3,s_4\}$ then emits $W_1$
-\item $W_2:\{s_7, s_8\}$ Window buffer evicts $\{s_5,s_6\}$, keeps $\{s_7,s_8\}$ then emits $W_2$
+\item $W_1:\{s_3,s_4\}$ when $s_4$ has arrived, window buffer contains 4 tuples $\{s_1,s_2,s_3,s_4\}$ but window's width is 2 so that $\{s_1,s_2\}$ will be evicted from window. Window buffer keeps $\{s_3,s_4\}$ then emits buffer as window $W_1$.
+\item $W_2:\{s_7, s_8\}$ window buffer evicts $\{s_5,s_6\}$, keeps $\{s_7,s_8\}$ then emits buffer as window $W_2$.
 \end{itemize}
 
 \begin{figure}[htbp!] 
@@ -345,11 +344,11 @@ Example: For example, window contains last 2 transactions once every 2 transacti
 \subsection{Definition of contents} 
 
 \begin{itemize}
-	\item Logical or time-based windows are defined in terms of time interval, e.g., a time-base sliding window may maintain the the last one minutes of data.
+	\item \textbf{Logical} or t\textbf{ime-based windows} are defined in terms of time interval, e.g., a time-base sliding window may maintain the the last one minute of data.
 	
-	\item Physical(also known as count-based or tuple-based) windows are defined in terms of the number of tuples, e.g., a count-based window may store the last arrived 100 tuples.
+	\item \textbf{Physical} (also known as \textbf{count-based} or \textbf{tuple-based}) \textbf{windows} are defined in terms of the number of tuples, e.g., a count-based window may store the last arrived 100 tuples.
 	
-	\item Delta-based windows are defined in terms of a delta function and a threshold value. The function calculates a delta between 2 elements such as absolute distance or Euclidean distance between 2 data elements. In delta-based windows, the delta between the first element and any of the rest must not be larger than the threshold, respectively. Currently new arrival data point will join the window if the delta between it and the first elements of window is equal or less than threshold. Otherwise, the window is closed and emitted; the currently arrival data point trigger a new window. 
+	\item \textbf{Delta-based windows} are defined in terms of a delta function and a threshold value. The function calculates a delta between 2 elements such as absolute distance or Euclidean distance between them. In delta-based windows, the delta between the first element and any of the rest must not be larger than the threshold, respectively. Currently new arrival data point will join the window if the delta between it and the first elements of window is equal or less than threshold. Otherwise, the window is closed and emitted; the currently arrival data point trigger a new window. 
 	
 Formally, a delta windows $W$ contains $n$ interval ordered elements $s_1, s_2,...,s_n$ continuously so that every elements $a_k$ with $k \in [1,n]$ must satisfies
 	\begin{equation}
@@ -380,7 +379,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 
 
 
-	\item Partitioned Windows contain only the elements  in the same group which differentiates itself from the other groups  by the value of a grouping attributes (subset of its schema), e.g., a partitioned window store last 100 elements with the same value of (\textit{StockSymbol}, \textit{Exchange})(Figure~\ref{fig:partitionedWin}). Thus, several  substreams are derived logically from the base stream, each one is represented by an existing combinations of value$<a_1,a_2,...,a_k> \in Dom(S)$ on the grouping attributes $<A_1, A_2,...,A_k> \subset S$ ($S$ is schema of tuples, $Dom(S)$ is domain of $S$). Each group maintains a separate window buffer to capture arrival events and emit when satisfies window specification.
+	\item \textbf{Partitioned Windows} contain only the elements  in the same group which differentiates itself from the other groups  by the value of a grouping attributes (subset of its schema), e.g., a partitioned window store last 100 elements with the same value of (\textit{StockSymbol}, \textit{Exchange})(Figure~\ref{fig:partitionedWin}). Thus, several  substreams are derived logically from the base stream, each one is represented by an existing combinations of value $<a_1,a_2,...,a_k> \in Dom(S)$ on the grouping attributes $<A_1, A_2,...,A_k> \subset S$ ($S$ is schema of tuples, $Dom(S)$ is domain of $S$). Each group maintains a separate window buffer to capture arrival events and emit when satisfies window specification.
 	
 \begin{figure}[htbp!] 
 \centering    
@@ -393,7 +392,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 	
 	
 	
-	\item Predicate window~\citep{Ghanem:2008}, in which an arbitrary logical predicate specifies the contents. Only tuples that satisfies the predicate will join the window, otherwise it is discarded. e.g.,predicate window maintain last 100 transactions which have more than 100.000 units in terms of \textit{volume}, respectively. Every transaction with fewer quantity will be discarded.
+	\item \textbf{Predicate window}~\citep{Ghanem:2008}, in which an arbitrary logical predicate specifies the contents. Only tuples that satisfies the predicate will join the window, otherwise it is discarded e.g.,predicate window maintains last 100 transactions which have more than 100.000 units in terms of \textit{volume}, respectively. Every transaction with fewer quantity will be discarded.
 	
 \end{itemize}
 
