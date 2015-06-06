@@ -10,10 +10,10 @@
     \graphicspath{{Chapter4/Figs/Vector/}{Chapter4/Figs/}}
 \fi
 
-
+\section{Fundamental of query languages}
 \subsection*{Query}
 
-A query is a request telling system what to do in order to retrieve or alter desired information stored or processed by system. For instances, asking ``How many products are sold today? ''. Queries over data stream and in a traditional DBMS have a lot in common; however, due to characteristic of continuousness in data stream, we may classify a query as one-time query or continuous query \citep{Terry:1992} \citep{Babcock:2002}. 
+A query is a request telling system what to do in order to retrieve or alter desired information stored or processed by system. For instances, asking ``How many products are sold today?''. Queries over data stream and in a traditional DBMS have a lot in common; however, due to characteristic of continuousness in data stream, we may classify a query as one-time query or continuous query \citep{Terry:1992} \citep{Babcock:2002}. 
 \begin{itemize}
 	\item \textbf{One-time queries} are evaluated once over data set at a given time instant, and terminated after returning its result. This is also called \textit{passive query} \citep{SmartVotex:2011} since system require queries and passively waits for users to issue these queries before executing. 
 	\item \textbf{Continuous queries}, in contrast, get evaluated continually as new data arrives to the observed stream. System continuously delivery new results  over time according to the snapshot or state of data stream seen so far. Thus the output of queries is not a single result, but rather new streams of results for further operators if desired. Obviously, continuous queries really fit to user's requirements to observed data streams till its end. 
@@ -22,11 +22,11 @@ A query is a request telling system what to do in order to retrieve or alter des
 
 
 \subsection*{Query Language}
-Queries are expressed in terms of some query language. Queries provide for users and programmers a very general way to specify data selections, projections, combination, computation and so on over data set/stream. In the meanwhile, users can send the queries using either imperative or declarative language.
+Queries are expressed in terms of some query languages. They provide for users and programmers a very general way to specify data selections, projections, combination, computation and so on over data set/stream. In the meanwhile, users can send the queries using either imperative or declarative language.
 
 \subsubsection*{Imperative vs. Declarative language}
 \begin{itemize}
-	\item \textbf{Imperative language} requires users to define explicitly step by step \textbf{how} code should be executed to get \textbf{what} they want. They need to break the program into sequences of commands in particular order for the system to perform. Actually, many existing programming languages are imperative supporting \textit{assignemnt}, \textit{for-loop}, \textit{if-else} statements and so on to construct the complete program. For example, assuming that \textit{StockTick} is a  list of stock transactions,  to filter through \textit{StockTick} to get all stock transactions from `NYSE' only: 
+	\item \textbf{Imperative language} requires users to define explicitly step by step \textbf{how} code should be executed to get \textbf{what} they want. They need to break the program into sequences of commands in particular order for the system to perform. Actually, many existing programming languages are imperative supporting \textit{assignment}, \textit{for-loop}, \textit{if-else} statements and so on to construct a complete program. For example, assuming that \textit{StockTick} is a  list of stock transactions,  to filter through \textit{StockTick} to get all stock transactions from `NYSE' only: 
 \begin{lstlisting}
 	function getTransFromNYSE {
 		var fromNYSE = []
@@ -45,20 +45,20 @@ Queries are expressed in terms of some query language. Queries provide for users
 There are several advantages of declarative over imperative language \citep{Martin:2014}:
 
 \begin{itemize}
-	\item Declarative language is typically more concise , more friendly and easier to work with. For instance, comparing 2 previous programs, the former has 7 lines of code while the latter goes with 1 line. According to \citep{Ronnie:2015}, Java program is typically 50 times less compact than SQL query for the same purpose. Generally, that because they have different level of abstraction. Declarative language already hides complicated implementation details. It makes the program much more simpler but possible for system to introduce underneath improvement without any impact on queries.
-	\item Declarative languages, for example SQL, HTML,  are usually followed a set of standard syntaxs which make it more limited in functionality, give the system more room for automatic optimization. 
+	\item Declarative language is typically more concise , more friendly and easier to work with. For instance, comparing 2 previous programs, the former has 7 lines of code while the latter goes with 1 line. According to \citep{Ronnie:2015}, Java program is typically 50 times less compact than SQL query for the same purpose. Generally, that is because they have different level of abstraction. Declarative language already hides complicated implementation details. It makes the program much more simpler but possible for system to introduce underneath improvement without any impact on queries.
+	\item Declarative languages, for example SQL, HTML,  are usually followed a set of standard syntax which make it more limited in functionality, give the system more room for automatic optimization. 
 	\item In terms of parallel execution environment, declarative language like SQL has a better chance to be executed faster. Imperative code instructs its sequence of operators to be performed in a certain order so that it is really hard to parallelize programs across distributed system. In the other hand, declarative queries are more atomic to be implemented in parallel if appropriate.
 \end{itemize}
 
-\subsection*{FlinkCQL - a SQL-like dialect}
+\subsection*{FlinkCQL - a SQL-like dialect for Flink Streaming Processing}
 Recently, there are 2 common forms of declarative language applying to data query: SQL and LINQ. However, we decide to extend SQL syntax for our continuous query language due to several advantages:
 \begin{itemize}
-	\item Traditional database model and data stream model are distinguished but till share many common features and operators. Since,SQL was a well-designed for handle data in batch mode, extending it to handle data-in-motion in data stream model is a possible incremental approach to quickly define language with less effort.
+	\item Traditional database model and data stream model are distinguished but till share many common features and operators. Since, SQL is well-designed for handle data in batch mode, extending it to handle data-in-motion in data stream model is a possible incremental approach to quickly define language with less effort.
 	\item SQL is so common and recognized by most of developers. Therefore, extended SQL languare would not challenge them to learn and master it.
-	\item SQL is a standard adopted by most of relational database systems. As a result, their syntax is well-designed and refactored. Moreover, parsers, visualizers and composers for SQL are readily available to extend.
+	\item SQL is a standard adopted by most of relational database systems. As a result, their syntax is well-designed and quality-guaranteed to use. Moreover, parsers, visualizers and composers for SQL are readily available to extend.
 \end{itemize}
 
-http://www.sqlstream.com/blog/2015/03/why-we-need-sql-for-real-time-streaming-analytics/
+%//TODO:http://www.sqlstream.com/blog/2015/03/why-we-need-sql-for-real-time-streaming-analytics/
 
 	
 %\subsubsection*{LINQ}
@@ -84,28 +84,30 @@ There are several properties of data stream which we take into account when exte
 	\item \textbf{Non-blocking operators} Naturally, blocking operation is not applicable to data stream
 \end{itemize}
 
-We are hereby going to present FlinkCQL syntax on \ref{language} and its semantic  on \ref{semantic}
+We are hereby going to present FlinkCQL syntax on session~\ref{language} and its semantic  on session~\ref{semantic}
 
 
 
 
+%//TODO
+%In the streaming literature, query language model a stream as a representation for an infinite append-only relation. The append-only stream model effects the following limitations\citep{Ghanem:2008}
+%\begin{itemize}
+%\item It limits the applicability of the language since the append-only models cannot represent streams from the various domain( e.g., the update streams or streams that represent concatenation of the states of a fixed size relation).
+%\item The append-only stream model limits the types of queries that the language can express since only non-blocking queries can produce append-only streams as output
+%\item The semantics of query composition in the append-only stream model is complex and the meaning of the composed queries is difficult to understand.
+%\end{itemize}
 
-In the streaming literature, query language model a stream as a representation for an infinite append-only relation. The append-only stream model effects the following limitations\citep{Ghanem:2008}
-\begin{itemize}
-\item It limits the applicability of the language since the append-only models cannot represent streams from the various domain( e.g., the update streams or streams that represent concatenation of the states of a fixed size relation).
-\item The append-only stream model limits the types of queries that the language can express since only non-blocking queries can produce append-only streams as output
-\item The semantics of query composition in the append-only stream model is complex and the meaning of the composed queries is difficult to understand.
-\end{itemize}
+% //TODO: reference
 
-Query \citep{Babcock:2002} 
+%Query \citep{Babcock:2002} 
 
-Query : Smart Votex , page 2
+%Query : Smart Votex , page 2
 
-Window Specification over Data Streams.pdf
+%Window Specification over Data Streams.pdf
 
-[Stream] Evaluate CQL
+%[Stream] Evaluate CQL
 
-Designing\_Data\_Intensive\_Applications.pdf
+%Designing\_Data\_Intensive\_Applications.pdf
 
 
 
