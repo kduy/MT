@@ -308,7 +308,7 @@ For example, window contains last 3 transactions once every 1 transaction passed
 
 \item \textbf{Tumbling window}: a particular sliding window where the boundaries move is equal to the window's width. Windows are disjoint or non-overlapped each other. However, windowed stream will still cover all elements on based stream.
 
-For example, window contains last 2 transactions once every 2 transaction passed. Up to 5 a.m, the stream contains 3 windows (Figure~\ref{fig:tumblingWin})
+For example, window contains last 2 transactions once every 2 transactions passed. Up to 5 a.m, the stream contains 3 windows (Figure~\ref{fig:tumblingWin})
 
 \begin{itemize}
 \item $W_1:\{s_1,s_2\}$ 
@@ -324,7 +324,7 @@ For example, window contains last 2 transactions once every 2 transaction passed
 \end{figure}
 
 
-\item \textbf{Jumping window}: a particular sliding window where the boundaries move is larger than the window's width. Windows are disjoint or non-overlapped each other but some of tuples may be discarded. For example, window contains last 2 transactions once every 4 transaction passed. Up to 5am, the stream contains 2 windows (Figure~\ref{fig:jumpingWin})
+\item \textbf{Jumping window}: a particular sliding window where the boundaries move is larger than the window's width. Windows are disjoint or non-overlapped each other but some of tuples may be discarded. For example, window contains last 2 transactions once every 4 transactions passed. Up to 5am, the stream contains 2 windows (Figure~\ref{fig:jumpingWin})
 \begin{itemize}
 \item $W_1:\{s_3,s_4\}$ when $s_4$ has arrived, window buffer contains 4 tuples $\{s_1,s_2,s_3,s_4\}$ but window's width is 2 so that $\{s_1,s_2\}$ will be evicted from window. Window buffer keeps $\{s_3,s_4\}$ then emits buffer as window $W_1$.
 \item $W_2:\{s_7, s_8\}$ window buffer evicts $\{s_5,s_6\}$, keeps $\{s_7,s_8\}$ then emits buffer as window $W_2$.
@@ -379,7 +379,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 
 
 
-	\item \textbf{Partitioned Windows} contain only the elements  in the same group which differentiates itself from the other groups  by the value of a grouping attributes (subset of its schema), e.g., a partitioned window store last 100 elements with the same value of (\textit{StockSymbol}, \textit{Exchange})(Figure~\ref{fig:partitionedWin}). Thus, several  substreams are derived logically from the base stream, each one is represented by an existing combinations of value $<a_1,a_2,...,a_k> \in Dom(S)$ on the grouping attributes $<A_1, A_2,...,A_k> \subset S$ ($S$ is schema of tuples, $Dom(S)$ is domain of $S$). Each group maintains a separate window buffer to capture arrival events and emit when satisfies window specification.
+	\item \textbf{Partitioned windows} contain only the elements  in the same group which differentiates itself from the other groups  by the value of a grouping attributes (subset of its schema), e.g., a partitioned window store last 100 elements with the same value of (\textit{StockSymbol}, \textit{Exchange})(Figure~\ref{fig:partitionedWin}). Thus, several  substreams are derived logically from the base stream, each one is represented by an existing combinations of value $<a_1,a_2,...,a_k> \in Dom(S)$ on the grouping attributes $<A_1, A_2,...,A_k> \subset S$ ($S$ is schema of tuples, $Dom(S)$ is domain of $S$). Each group maintains a separate window buffer to capture arrival events and emit when satisfies window specification.
 	
 \begin{figure}[htbp!] 
 \centering    
@@ -392,7 +392,7 @@ Up to the moment $s_4$ has processed, Stream $S$ is discretized into window stre
 	
 	
 	
-	\item \textbf{Predicate window}~\citep{Ghanem:2008}, in which an arbitrary logical predicate specifies the contents. Only tuples that satisfies the predicate will join the window, otherwise it is discarded e.g.,predicate window maintains last 100 transactions which have more than 100.000 units in terms of \textit{volume}, respectively. Every transaction with fewer quantity will be discarded.
+	\item \textbf{Predicate windows}~\citep{Ghanem:2008}, in which an arbitrary logical predicate specifies the contents. Only tuples that satisfies the predicate will join the window, otherwise it is discarded e.g.,predicate window maintains last 100 transactions which have more than 100.000 units in terms of \textit{volume}, respectively. Every transaction with fewer quantity will be discarded.
 	
 \end{itemize}
 

@@ -11,36 +11,34 @@
 \fi
 
 \section{Heterogeneity}\label{Heterogeneity}
-Since the first commercial project of Complex Event Processing launched by Bell Labs in 1998 with its "Sunrise Project", we have seen the fast growing of many stream processing frameworks. However, there is a huge degree of heterogeneity across these frameworks in various forms \citep{Dindar:2013}: 
+Since the first commercial project of Complex Event Processing launched by Bell Labs in 1998 with its real-time billing project named ``Sunrise''~\citep{Belllab}, we have seen the fast growing of many stream processing frameworks. However, there is a huge degree of heterogeneity across these frameworks in various forms \citep{Dindar:2013}: 
 
 \begin{enumerate}
 
-	\item \textbf{Syntax}: Although the ISO/IEC 9075 is published to standardize the complete syntax and operations in SQL language as a whole, there is no standard language for stream processing. Different stream processing engines use different syntax to depict the same semantic meaning. For example, every 5 seconds, a window captures all event last 10 seconds. 
+	\item \textbf{Syntax}: Although the ISO/IEC 9075 documentation is published to standardize the complete syntax and operations in SQL language as a whole, there is no standard language for stream processing. Different stream processing engines use different syntax to depict the same semantic meaning. For example, to refer to a window which captures all event last 10 seconds and advanced by 5 seconds, CQL and FlinkCQL accept different query syntax:
 	\begin{verbatim}
 	CQL: 	[RANGE 10 seconds SLIDE 5 second ] 
 	Flink: 	[SIZE 10 sec EVERY 5 sec]
 	\end{verbatim}
 	
 	\item \textbf{Capability heterogeneity}:
-	Those engines also provide different set of query types and operations based on which functions they are capable of. For examples, \textit{Streambase} support pattern matching on stream, whereas STREAM does not.
+	Those engines also provide different set of query types and operations based on which functions they are capable of. For examples, \textit{Streambase}~\citep{StreamBaseTut} support pattern matching on stream, whereas STREAM does not.
 	
-	\item \textbf{Execution Model}: Below the language level, hidden from application layers, each stream processing engine has its own underlying execution model. With the same data stream but different model produce different output which varies based on the differences on tuple ordering,  window construction, evaluation and so on. We are going to focus on the differences between several existing execution models below.
-	
+	\item \textbf{Execution Model}: Under the language level, hidden from application layers, each stream processing engine has its own underlying execution model. With the same data stream but different model produces different output which varies based on the differences on policies of tuple ordering,  window construction, evaluation and so on. We are going to focus on the differences between several existing execution models below.
 	
 \end{enumerate}
  
 We have learned that there are at least three different execution models:
 \begin{itemize}
-	\item \textbf{Time-driven} execution model, followed by CQL, Oracle CEP. In the model, each tuple have a timestamp. Timestamp induces the total order of tuples on stream, but not a strict total order. Or more specifically, there is no ordering between tuples with identical timestamps. These tuples are considered as simultaneous tuples. It is problematic when we select a window of last 10 tuples but more than 10 simultaneous tuples arrived at a given time instant. In this case, there is no different between those tuples, the system will select only 10 out of all in a non-deterministic way.
+	\item \textbf{Time-driven} execution model, followed by STREAM, Oracle Complex Event Processing (Oracle CPE). In the model, each tuple has a timestamp. Timestamp induces the total order of tuples on stream, but not a strict total order. Or more specifically, there is no ordering between tuples with identical timestamps. These tuples are considered as simultaneous tuples. It is problematic when we select a window of last 10 tuples but more than 10 simultaneous tuples arrived at a given time instant. In this case, there is no different between those tuples, the system will select only 10 out of all in a non-deterministic way. We have no control on which one the system will pick.
 	
 Assuming that we has stream $\mathbb{S}$ (regardless of system timestamps): 
 	\begin{equation}
 			\mathbb{S}(value, t_{app}) = s_1(1,1),\,\,s_2(10,2),\,s_3(20,2),\, s_4(100,3)
 	\end{equation}
 	
-
 	
-Consider a query which continuously recall the last arrival tuple i.e., we select tuple-based window with size of 1 tuple. In the time-based execution model,  the state of a window changes as timestamp progress. Window gets re-evaluated only when timestamp change. At $t=1$ or $t=3$, there is only 1 tuple arrived, new 1-tuple-size window will open , pick the tuple then close. Thus the stream derives window $W_1: \{s_1(1,1)\}$ and $W_3: \{s_4(100,3)\}$. On the other hand, at $t=2$, there are 2 new tuple arrivals simultaneously. New window $W_2$ opens and accepts 1 tuple only. Since these 2 tuples arrive simultaneously, they will have the same timestamp and thus no any temporal differences between them. System simply picks one of them randomly for window $W_2$. In short, window $W_2$ contains one of following options: $s_2(10,2)$ or $s_3(20,2)$. The derived stream will be one of the streams:
+Consider a query which continuously recalls the last arrival tuple i.e., we select tuple-based window with size of 1 tuple. In the time-based execution model,  the state of a window changes as timestamp progress. Window gets re-evaluated only when timestamp changes. At $t=1$ or $t=3$, there is only 1 tuple arrived, new 1-tuple-size window will open , pick the tuple then close. Thus the stream derives window $W_1: \{s_1(1,1)\}$ and $W_3: \{s_4(100,3)\}$. On the other hand, at $t=2$, there are 2 new tuple arrivals simultaneously. New window $W_2$ opens and accepts 1 tuple only. Since these 2 tuples arrive simultaneously, they will have the same timestamp and thus no any temporal differences between them. System simply picks one of them randomly for window $W_2$. In short, window $W_2$ contains one of following options: $s_2(10,2)$ or $s_3(20,2)$. The derived stream will be one of the streams:
 \begin{equation}
 W_1\{s_1\},\, W_2\{s_2\},\, W_3\{s_4\}\, \textit{or}\, W_1\{s_1\},\, W_2\{s_3\},\, W_3\{s_4\}
 \end{equation}
@@ -48,15 +46,15 @@ W_1\{s_1\},\, W_2\{s_2\},\, W_3\{s_4\}\, \textit{or}\, W_1\{s_1\},\, W_2\{s_3\},
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{time-driven}
-\caption{Time-driven Execution model. Window size of 1 tuple}
+\caption[Time-driven Execution model]{Time-driven Execution model. Window size of 1 tuple}
 \label{fig:time-driven}
 \end{figure}
 	
 	\item \textbf{Tuple-driven} execution model, followed by StreamBase, Apache Flink. In this model, tuples may have an application timestamp attribute on its schema. Some of application timestamp values might be identical but tuples themselves are completely distinguished in stream. There exists a strict total order in stream based on their arrival order. 
 	
-	There are several ways to represent tuple order in stream. StreamBase system assigns an incremental internal rank to tuples to arriving tuples. It ensures that the tuple with lower rank with be processed before tuples with higher ranks. In Apache Flink, we implicitly use system timestamp   $t_{sys}$ at which system receives the tuple. Executing this \textit{tuple-at-a-time} model, logically Flink places new arrived tuple to a queue and process it one by one. Therefor, there is at most one tuple  considered arriving at a give time.  Since tuples with attached system timestamps are strictly totally ordered, it is perfectly suitable for Flink's execution model. Several other works propose to use tuple Id \citep{Dindar:2013} or a physical identifier\citep{Petit:2010} instead. 	
+	There are several ways to represent tuple order in stream. StreamBase system assigns an incremental internal rank to tuples to arriving tuples. It ensures that the tuple with lower rank with be processed before tuples with higher ranks. In Apache Flink, we implicitly use system timestamp   $t_{sys}$ at which system start processing the tuples. Executing this \textit{tuple-at-a-time} model, logically Flink places new arriving tuple to a queue and processes it one by one. Therefor, there is at most one tuple  considered arriving at a given time.  Since tuples with attached system timestamps are strictly totally ordered, it is perfectly suitable for Flink's execution model. Several other works propose to use tuple Id~\citep{Dindar:2013} or a physical identifier~\citep{Petit:2010} instead. 	
 	
-	In tuple-driven execution model, each tuple arrival cause a system to react, instead of each application timestamp progress. 
+	In tuple-driven execution model, each tuple arrival causes system to react, instead of each application timestamp progress. 
 	
 	Extending previous examples, every tuple is entitled to a system timestamp. As we mentioned in previous chapter, application and system timestamp are not necessarily synchronized.
 	\begin{equation}
@@ -75,10 +73,10 @@ W_1\{s_1\},\, W_2\{s_2\},\, W_3\{s_3\}\,W_4\{s_4\}
 \label{fig:tuple-driven}
 \end{figure}
 	
-	\item \textbf{Batch-driven} execution model, followed by Coral8, mentioned in SECRET\citep{Botan:2010} descriptive model 
+	\item \textbf{Batch-driven} execution model, followed by Coral8~\citep{Coral8}, SECRET~\citep{Botan:2010} descriptive models 
 	
 	
-In this model, every tuple is assigned an batch-id. Tuples which belong to a batch must have the same timestamp, but two separate tuples with the identical timestamp may belong to two different batches. As we can see, batch-driven model is in between of tuple-driven and time-driven model (Figure~\ref{fig:executionModel}). Assuming that at a given application timestamp $t_{app} = 2$, the system receives 5 tuples $\{s_1,\,s_2,\,s_3,\,s_4,\,s_5\>\}$,  but they arrive at different $t_{sys}$ respectively. Time-driven model treats them as simultaneous tuples with no difference. Tuple-driven considers them as 5 concrete tuples in strict order. And batch-driven model may divide them into 2 batches $\{s_1,\,s_2,\,s_3\}$, $\{s_4,\,s_5\}$ depending on window specification.
+In this model, every tuple is assigned an batch-id. Tuples which belong to a batch must possess a same timestamps, but two separate tuples with the identical timestamp may belong to two different batches. As we can see, batch-driven model is in between of tuple-driven and time-driven model (Figure~\ref{fig:executionModel}). Assuming that at a given application timestamp $t_{app} = 2$, the system receives 5 tuples $\{s_1,\,s_2,\,s_3,\,s_4,\,s_5\>\}$,  but they arrive at different $t_{sys}$ respectively. Time-driven model treats them as simultaneous tuples with no difference. Tuple-driven considers them as 5 concrete tuples in strict order. And batch-driven model may divide them into 2 batches $\{s_1,\,s_2,\,s_3\}$, $\{s_4,\,s_5\}$ depending on window specification.
 
 
 
@@ -104,12 +102,12 @@ In this model, every tuple is assigned an batch-id. Tuples which belong to a bat
 \end{figure}
 
 \end{itemize}
-We extends the examples in \citep{Dindar:2013} with Flink implementation in order to demonstrate that system with different execution model may produce different output , even with the same input and query. 
+We extends the examples in~ \citep{Dindar:2013} with experiments on Flink in order to demonstrate that system with different execution model may produce different output , even with the same input and query. 
 \begin{enumerate}
 
 \item \textbf{Example 1:} \textit{differences in window constructions}.
 
-Given \textit{Instream} stream with schema $S(time, value)$. Consider a query which continuously computes the average value of tuples in a time-based tumbling window of size 3.
+Given an \textit{Instream} stream with schema $S(time, value)$. Consider a query which continuously computes the average value of tuples in a time-based tumbling window of size 3.
 \begin{align*}
 Instream(time,value) &= \{(10,10),(11,20),(12,30),(13,40),(14,50),\\
 &\qquad (15,60),(16,70),...\} \\
@@ -117,12 +115,14 @@ Oracle\, CEP\, (avg)		&= \{(20), (50),...\} \\
 Flink\, (avg)			&= \{(15), (40),...\} \\
 \end{align*}
 
-Obviously, Oracle CEP constructs the first window with first 3 tuples whereas Flink picks first 2 tuples only. The second window , they both take next 3 tuples. We implement the test on Flink with default configuration, however we are able to customize the upper bound of the first window ($startTime = 12$)so that it produces the same result as Oracle CEP.
+Obviously, Oracle CEP constructs the first window with first 3 tuples whereas Flink picks first 2 tuples only. The reason is that Oracle CEP starts constructing a first window when the first tuple has arrived so that the first window always contains 3 first tuples. However, in default, Flink assumes that the first possible window starts from $t = 0$ and Flink emits a window only when it is not empty. In the example, the first non-empty window buffers the tuples arrived at $t_1=9$ to $t_3=11$. Since there is no tuple at $t_1 = 9$, the first window contains only 2 tuples $\{(10,10),(11,20)\}$.
+
+From the second window, they both take next 3 tuples according to window specifications. We implemented the test on Flink with default configuration, however we are able to customize the upper bound of the first window ($startTime = 12$)so that Flink produces the same result as Oracle CEP.
 
 
 \item \textbf{Example 2:} \textit{differences in window evaluations}.
 
-Consider a query which continuously computer the average value of tuples over last 5 second once every 1 second (time-based window of size 5s that slides by 1s)
+Consider a query which continuously computer the average value of tuples over last 5 second once every 1 second (time-based window of size 5 seconds that slides by 1 second)
 
 \begin{align*}
 Instream(time,value) 	&= \{s_1(30,10),\,s_2(31,20),\,s_3(36,30),...\} \\
@@ -131,8 +131,8 @@ Flink\, (avg)			&= \{(10), (15), (15), (15), (15), (20),...\}\\
 Coral8\, (avg)			&= \{(10), (15),(20),...\}			
 \end{align*}
 
-Flink produced a different result than Oracle and Coral8.
-In Oracle and Coral8, a new window is emitted for invoking the average operator only when the window content's change; whereas in Flink, it emits a new window every second as the sliding progress , even if the content does not change. The state of window is depicted on Figure ~\ref{fig:winEvaluation}
+Flink produced a different result than Oracle CEP and Coral8.
+In Oracle CEP and Coral8, a new window is emitted for invoking the average operator only when the window content's change; whereas in Flink, it emits a new window every second as the sliding progress , even if the content does not change. The state of window is depicted on Figure ~\ref{fig:winEvaluation}
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.8\textwidth]{winEvaluation}
@@ -166,7 +166,7 @@ Oracle CEP implements time-based execution model so that it reacts to each appli
 
 
 %\textbf{TODO} http://blog.mikiobraun.de/2014/01/apache-spark.html
-Recently, Apache Spark~\citep{spark} and Apache Storm~\citep{storm} have introduced a technique called \textit{micro-batching}~\citep{Zaharia:2012}. In which, operators treat a stream as a continuous series of small batches or chunks of data covered within a tiny time internals. The basic abstraction of Spark streaming , a discretized stream,  is represented by a infinite sequence of RDDs(Resilient Distributed Datasets) which is immutable and distributed storage abstraction of Spark. Each RDD contains data from a certain interval. In short, the granular level of Spark stream is a micro-batch of tuples, rather than a individual tuple which is presented in previous execution model. It seems that limiting abstract level of stream to a batch, it makes less sense of a true record-by-record processing~\citep{Shahrivari:2014}.
+Recently, Apache Spark~\citep{spark} and Apache Storm Trident~\citep{storm} have introduced a technique called \textit{micro-batching}~\citep{Zaharia:2012}. In which, operators treat a stream as a continuous series of small batches or chunks of data covered within a tiny time internals. The basic abstraction of Spark streaming , a discretized stream,  is represented by a infinite sequence of RDDs (Resilient Distributed Datasets) which is immutable and distributed storage abstraction of Spark. Each RDD contains data from a certain interval. In short, the granular level of Spark stream is a micro-batch of tuples, rather than a individual tuple which is presented in previous execution model. It seems that limiting abstract level of stream to a batch, it makes less sense of a true record-by-record processing~\citep{Shahrivari:2014}.
 
 %\\TODO:http://www.sqlstream.com/blog/2015/03/5-reasons-why-spark-streamings-batch-processing-of-data-streams-is-not-stream-processing/
 %\\TODO: https://www.cs.berkeley.edu/~matei/papers/2012/hotcloud_spark_streaming.pdf
@@ -194,21 +194,21 @@ A time-based window $W_{t} = (l,u,\omega_t)$ over a stream $S$ is a finite subse
 Notice that in a time-based window, $s.t$ can be tuple's application or system timestamp depending on query. Again, there are maybe many simultaneous tuples with an identical $t_{app}$. However, there is at least one arriving tuple at a given $t_{sys}$. The second point is that $W_t$ open at $t = l$, it does not include tuple at this time instant.
 
 \begin{defi}
-A count-based window $W_{c} = (l,u,\omega_c)$ over a stream $S$ is also a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l,u \in \mathbb{T}$, $\omega_c \in \mathbb{N}$ and $l \leq s.t_{sys} \leq u$. The length of window $\omega_c$ is the number of tuples in interval time $[l, u]$, i.e., $\omega_c = | {s \in \mathbb{S}(t_{sys}): l \leq s.t_{sys} \leq u}|$
+A count-based window $W_{c} = (l,u,\omega_c)$ over a stream $S$ is also a finite subset of  $\mathbb{S}$ containing all data elements $s \in \mathbb{S}$ where $l,u \in \mathbb{T}$, $\omega_c \in \mathbb{N}$ and $l \leq s.t_{sys} \leq u$. The length of window $\omega_c$ is the number of tuples in interval time $[l, u]$, i.e., $\omega_c = | {s \in \mathbb{S}: l \leq s.t_{sys} \leq u}|$
 \end{defi}
 The count-based window $W_{c}$ is independent from application timestamp $t_{app}$. It is only related to system timstamp $t_{sys}$ which indicates tuple's order in stream. 
 
 
-\item \textbf{Trigger Policy}: In general, it defines window slide or the distance between 2 consecutive windows. On above example , trigger policy states that from beginning, system must trigger a new window every 10 minutes. No other window would be triggered in between.
+\item \textbf{Trigger Policy}: In general, it defines window slide or the distance between 2 consecutive windows. On previous example , trigger policy states that from beginning, system must trigger a new window every 10 minutes. No other window would be triggered in between.
 
-Supposed that we have 2 consecutive windows $W_1 = (l_1, u_1, \_)$ and $W_2 = (l_2, u_2, \_)$  where $l_1 < l_2$. There is no window $W' = (l_3, u_3, \_)$ such that $l_1< l_3 < l_2$.
+Supposed that we have 2 consecutive windows $W_1 = (l_1, u_1, \omega)$ and $W_2 = (l_2, u_2, \omega)$  where $l_1 < l_2$. There is no window $W' = (l_3, u_3, \omega)$ such that $l_1< l_3 < l_2$.
 \begin{defi}
 The distance or slide between 2 windows $W_1$ and $W_2$ is the distance between two of their upper-bound tuple as
 \begin{itemize}
 
 
 \item  A time-based slide $\beta_{t} = u_2 - u_1$.  
-\item A count-based slide $\beta_{c} = |{s \in \mathbb{S}(t_{sys}): u_1 < s.t_{sys} \leq u_2}| $ 
+\item A count-based slide $\beta_{c} = |{s \in \mathbb{S}: u_1 < s.t_{sys} \leq u_2}| $ 
 
 \end{itemize}
 
@@ -216,14 +216,14 @@ The distance or slide between 2 windows $W_1$ and $W_2$ is the distance between 
 
 \end{enumerate}
 
-There is a correlation between window size and slide size  conforming to the movement type of windows.
+There is a correlation between window size $\omega$ and slide size $\beta$  conforming to the movement type of windows.
 \begin{itemize}
-\item Sliding window: $\omega > \beta$ or $n > e$
-\item Tumbling window: $\omega = \beta$ or $n = e$
-\item Jumping window: $\omega < \beta$ or $n < e$
+\item Sliding window: $\omega > \beta$ 
+\item Tumbling window: $\omega = \beta$ 
+\item Jumping window: $\omega < \beta$ 
 \end{itemize}
 
-However, Flink allows to mix between time-based trigger policy with count-based eviction policy and vice versa. For example,
+However, Flink provide flexibility in mixing up between time-based trigger policy with count-based eviction policy and vice versa. For example,
 calculate sum of quantities of last 100 transactions every 1 hour.
 \begin{verbatim}
 StockTick.window(Count.of(100))
@@ -417,7 +417,7 @@ The upper boundary of the $k$th window is $u_k = u_1 + k.\beta_t$
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{timebased_slide}
-\caption{time-based slide}
+\caption{Time-based slide}
 \label{fig:timebased_slide}
 \end{figure}
 
@@ -426,7 +426,7 @@ In count-based slide, supposed that $u_1$ is the system timestamp of last elemen
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.5\textwidth]{countbased_slide}
-\caption{count-based slide}
+\caption{Count-based slide}
 \label{fig:countbased_slide}
 \end{figure}
 
@@ -437,7 +437,7 @@ In time-based windows, windows are defined in terms of of timestamp. Supposed th
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{timebased_window}
-\caption{time-based window}
+\caption{Time-based window}
 \label{fig:timebased_window}
 \end{figure}
 
@@ -455,7 +455,7 @@ $W=\{s:<v, \_, t_{sys}> \in \mathbb{S} \wedge t_{sys} \leq u_k \wedge  |\{<v,\_,
 \begin{figure}[htbp!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{countbased_window}
-\caption{count-based window}
+\caption{Count-based window}
 \label{fig:countbased_window}
 \end{figure}
 
