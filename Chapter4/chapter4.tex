@@ -79,12 +79,12 @@ Recently, there are 2 common forms of declarative language applying to data quer
 There are several properties of data stream which we take into account when extending SQL to FlinkCQL:
 
 \begin{itemize}
-	\item \textbf{Language closure}: it ensures that the output of any one query can be input to another
-	\item \textbf{Windowing} FlinkCQL allow to define window specification and  implement related operators
+	\item \textbf{Language closure}: it ensures that the output of any one query can be input to another query
+	\item \textbf{Windowing} FlinkCQL should allow to define window specification and  implement related operators
 	\item \textbf{Non-blocking operators} Naturally, blocking operation is not applicable to data stream
 \end{itemize}
 
-We are hereby going to present FlinkCQL syntax on session~\ref{language} and its semantic  on session~\ref{semantic}
+I propose FlinkCQL and describe its syntax on session~\ref{language} then its semantic  on session~\ref{semantic}
 
 
 
@@ -177,7 +177,6 @@ We utilize Extended Backus–Naur Form (EBNF) to make a formal descriptions of F
 	\item $\textbf{|}$ : alternation (or)
 \end{itemize} 
 Moreover, be aware that \textit{ident} stands for \textit{Identifier} which is recognized as name of schema, stream, data attribute and so on.
-\newpage
 \subsubsection{Create Schema}
 
 %\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
@@ -524,7 +523,7 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 	
 \end{enumerate}
 
-\subsection*{Relation-to-Stream}
+%\subsection*{Relation-to-Stream}
 %$\mathcal{M}_{R2S}\sembrack{IStream} \\
 %		{}\qquad= \lambda_R.\lambda_{t_{sys}}.\{v:  s<v,t_{app},t'_{sys}> \in S  \land 
 %		max(T-t_{sys},0) < t'_{sys} \leq t_{sys} \}$ 
