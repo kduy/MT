@@ -36,14 +36,42 @@ The user can optionally set a delimiter for the same purpose as in Text file str
 
 \textbf{Message queue connectors:} There are pre-implemented connectors for a number of popular message queue services. Connectors provide an interface for accessing data from various third party sources (message queues). Currently three connectors are natively supported, namely Apache Kafka, RabbitMQ and the Twitter Streaming API. In the recent prototype of FlinkCQL, we have not designed any syntax for those connectors due to lacking of testing facilities. However, in the next prototype, we could extend its syntax at ease.
 
-\subsection{SQL Context}
+\subsection*{DataStream[T]}
+The \textit{DataStream[T]} is the basic data abstraction provided by Flink Streaming. It represents a continuous, parallel, immutable stream of data of a certain type \textit{T}. Type \textit{T} could be :
+\begin{itemize}
+\item Primitive data type: integer, double, ...
+\item Tuple type: which is a composite of multiple primitive data types such as \textit{(integer, string, integer)}
+\item Class object: such as \textit{CarEvent(id: Int, speed: Int)}
+\end{itemize} 
 
+\subsection{SQL Context} 
 
-\subsection{Query Processing}
+At the beginning, we encounter a problem of diverse data types of stream elements. A source stream can contains elements of string type (as in raw source), other primitive types, tuple or class instance. It is cumbersome and impractical to provide query processing for all kinds of source streams respectively. Thus, when a data stream is entitled to a schema (via \textit{Create Stream} or \textit{Insert} statement), we first transform the origin source stream to a Data Stream of a universal type \textit{Row} . \textit{Row} is simply a tuple containing \textit{an array of any data} including \textit{Null}. We do not specify the type of elements inside the Row. Those types will be derived from Schema.
 
-\subsection{Output Data Streams}
+Recall the example in ~\ref{query:createStream} to create schema and stream of ``StockTick''.
+\begin{lstlisting}
+	CREATE SCHEMA StockTickSchema (symbol String, sourceTimestamp Long, price Double, quantity Int, exchange String)
+\end{lstlisting}
 
-// accept multiple input
+\begin{lstlisting} 
+	CREATE STREAM StockTick StockTickSchema 
+	SOURCE SOCKET ("98.138.253.109", 2000)
+\end{lstlisting}
+
+``StockTick'' is the Stream used inside FlinkCQL query. It is entitled to ``StockTickSchema'' and mapped to a real \textit{DataStream[Row]} which is derived from the socket text stream. The correlation between Stream and Schema is expressed in Figure~\ref{fig:SQLContext}. Be aware that the concept of Stream in FlinkSQL and DataStream in Flink is not identical. In fact, a Stream in FlinkSQL is a name to represent a \textit{DataStream[T]} in Flink.
+
+All Stream-Schema-DataStream relationships are stored in 3 dictionaries of \textit{SQLContext}~(Figure~\ref{fig:Architecture}). 
+Stream and Schema are unique but many Stream can share a Schema. And a Stream is mapped to a DataStream[T]. When user send out some further queries, query processing framework will lookup \textit{SQLContext} to decide which Stream-Schema is specified to generate an precise snippet of code.
+
+\begin{figure}[h!] 
+\centering    
+\includegraphics[width=0.8\textwidth]{SQLContext}
+\caption{\textit{Stream}-\textit{Schema} mapping in \textit{SQLContext}}
+\label{fig:SQLContext}
+\end{figure}
+
+\subsection{Data Manipulation Processing}
+Data Manipulation Processing is used to process Data Manipulation Queries such as SELECT, MERGE, SPLIT, INSERT. These queries specify which operators to process on given Streams and its Fields. System will look up its SQLContext to retrieve the actual input DataStream[Row]. Operator and Schema are to decide how to transform input DataStreams to a new one. The output of processing is either one or more Streams which are updated into SQLContext or a DataStream of tuple. This DataStream of tuple can be consumed to create other Stream via \textit{CREATE STREAM} query. For examples, the output of \textit{SELECT} query is a DataStream of tuple but the outputs of \textit{SPLIT} query are more than one Stream with its Schema and DataStream[Row].
 
 \section{Query Interpreter}
 \begin{figure}[h!] 

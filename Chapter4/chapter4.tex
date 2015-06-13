@@ -220,7 +220,7 @@ CREATE SCHEMA StockTickSchema2 StockTickSchema
 CREATE SCHEMA StockTickSchema3 (id Int) EXTENDS StockTickSchema
 \end{verbatim}
 
-\subsubsection{Create Stream}
+\subsubsection{Create Stream} \label{query:createStream}
 	
 					
 \begin{grammar}
@@ -248,7 +248,7 @@ CREATE STREAM StockTick (symbol String, price Double, quantity Int)
 
 The last part is optional source of stream. Recall that we have two kind of stream representations: base stream and derived stream. \textit{<raw source>} clause indicates that this is a base stream obtained through a network connection (\textit{<host>, <post>}) or from a text file. For instance, \textit{StockTick} stream originates from host \textit{98.138.253.109} via port \textit{2000}
 
-\begin{verbatim}
+\begin{verbatim} 
 	CREATE STREAM StockTick StockTickSchema 
 	SOURCE SOCKET ("98.138.253.109", 2000)
 \end{verbatim}
