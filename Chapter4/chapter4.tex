@@ -81,7 +81,7 @@ There are several properties of data stream which we take into account when exte
 	\item \textbf{Language closure}: In Relational algebra, closure property states that each operation takes one or more input relations and return an output relation. Thanks to this property, we are able to write nested relational expression. For example, a nested \textit{Select} query in \textit{From} clause or in \textit{Insert} statement. 
 	Therefore, to give more room for user to create a complex query at once, FlinkCQL should support nested queries and pay attention to the closure property. 
 	
-	\item \textbf{Windowing} FlinkCQL should allow to define window specification and  implement related operators. There is no doubt that Windowing is a essential technique in Stream Processing, not only because it is a mean to find a approximate query answering but also because it is strongly inspired from users' requirements. 
+	\item \textbf{Windowing} FlinkCQL should allow to define window specifications and  implement related operators. There is no doubt that Windowing is a essential technique in Stream Processing, not only because it is a mean to find a approximate query answering but also because it is strongly inspired from users' requirements. 
 	
 	\item \textbf{Blocking and Non-blocking operators} Naturally, blocking operation is not applicable to data stream.  According to~\citep{Babcock:2002}:
 	\begin{defi}
@@ -100,7 +100,7 @@ In short, blocking operators are possible to query on Windows only  while non-bl
 
 I propose FlinkCQL and describe its syntax on session~\ref{language} then its semantic  on session~\ref{semantic}
 
-
+// TODO: stronger statement
 
 
 %//TODO
@@ -232,8 +232,8 @@ CREATE SCHEMA StockTickSchema3 (id Int) EXTENDS StockTickSchema
 <derived source> ::=  <stream ident>| <subSelect>
 
 <raw source> ::= 
-				HOST `('<host>, <port>`)'
-					\alt FILE `('<file path>, <delimiter>`)'
+				SOCKET `('<host>, <port> [, <delimiter>]`)'
+					\alt FILE `('<file path> [, <delimiter>]`)'
 \end{grammar}
 
 A stream cannot be queried unless it is registered with a schema, simply because system require users to specify name of attributes for expression in most of cases. For this reason, we allow to entitle a stream to its schema using CREATE STREAM statement. Except for the reserved keywords, the statement consists of 3 parts. Stream name declaration is followed by schema definition and source of stream. Its schema can be recalled from a previously-defined named schema such as \textit{StockTickSchema}. 
@@ -250,7 +250,7 @@ The last part is optional source of stream. Recall that we have two kind of stre
 
 \begin{verbatim}
 	CREATE STREAM StockTick StockTickSchema 
-	SOURCE HOST ("98.138.253.109", 2000)
+	SOURCE SOCKET ("98.138.253.109", 2000)
 \end{verbatim}
 
 Derived stream may come from another existing stream or output of a query and its operators. \textit{<derived source>} clause indicates these two possibilities. For example, we register a new stream \textit{StockPrice} which is derived from \textit{StockTick} but pay attention to stock symbol and its price only
@@ -447,7 +447,7 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 	\item \textbf{Relation-to-Stream} operator is responsible for producing a output stream from a input relation. Flink provides a flatten function to unwrap a windows and convert a windowed stream to normal data stream. Thanks to this function, FlinkCQL perform a single Relation-To-Stream right after finishing \textit{projection} operator (specified on SELECT clause), and produce a new output stream.
 	\item \textbf{Stream-to-Stream} operators: Three of previous operator classes is fully support in CQL. However, it does not support direct operators between stream. To do so, system transforms a stream into relation, perform a chain of relational operators then convert back to stream format. In contrast, Flink allows to transform directly from input streams to output streams on all non-blocking operators and preserves the order of elements in stream.
 \end{itemize}
-\begin{figure}[htbp!] 
+\begin{figure}[h!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{relation}
 \caption{FlinkCQL operators}
