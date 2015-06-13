@@ -20,7 +20,6 @@ A query is a request telling system what to do in order to retrieve or alter des
 \end{itemize}
 
 
-
 \subsection*{Query Language}
 Queries are expressed in terms of some query languages. They provide for users and programmers a very general way to specify data selections, projections, combination, computation and so on over data set/stream. In the meanwhile, users can send the queries using either imperative or declarative language.
 
@@ -79,9 +78,24 @@ Recently, there are 2 common forms of declarative language applying to data quer
 There are several properties of data stream which we take into account when extending SQL to FlinkCQL:
 
 \begin{itemize}
-	\item \textbf{Language closure}: it ensures that the output of any one query can be input to another query
-	\item \textbf{Windowing} FlinkCQL should allow to define window specification and  implement related operators
-	\item \textbf{Non-blocking operators} Naturally, blocking operation is not applicable to data stream
+	\item \textbf{Language closure}: In Relational algebra, closure property states that each operation takes one or more input relations and return an output relation. Thanks to this property, we are able to write nested relational expression. For example, a nested \textit{Select} query in \textit{From} clause or in \textit{Insert} statement. 
+	Therefore, to give more room for user to create a complex query at once, FlinkCQL should support nested queries and pay attention to the closure property. 
+	
+	\item \textbf{Windowing} FlinkCQL should allow to define window specification and  implement related operators. There is no doubt that Windowing is a essential technique in Stream Processing, not only because it is a mean to find a approximate query answering but also because it is strongly inspired from users' requirements. 
+	
+	\item \textbf{Blocking and Non-blocking operators} Naturally, blocking operation is not applicable to data stream.  According to~\citep{Babcock:2002}:
+	\begin{defi}
+		A blocking query operator is a query operator that unable to produce the first tuple of its output until it has seen its entire input.
+	\end{defi} 
+
+Sorting, joining or aggregation such as SUM, COUNT, MIN, MAX, AVG are examples of blocking operators. Obviously, the end point of a data stream is nearly unpredictable so that these blocking operators are not very suitable to the data stream model. 
+
+In contrast, non-blocking operators, which can produce some tuples of output before it has detected the end of input, can be applied on data stream. Some of non-blocking operators such as projection, selection, partition, merge, split stream, can process new tuples on-the-fly without storing any temporary results~(stateless).
+
+However, it would be a huge drawback if blocking operators is missing in query language since they are very common for simple analytics. Fortunately, since a window contains a finite set of tuples, we are able to implement a blocking operators on each window in the lieu of the whole stream. 
+
+In short, blocking operators are possible to query on Windows only  while non-blocking operators can be applied on both concrete data streams or windows. 
+	
 \end{itemize}
 
 I propose FlinkCQL and describe its syntax on session~\ref{language} then its semantic  on session~\ref{semantic}
@@ -528,5 +542,4 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 %		{}\qquad= \lambda_R.\lambda_{t_{sys}}.\{v:  s<v,t_{app},t'_{sys}> \in S  \land 
 %		max(T-t_{sys},0) < t'_{sys} \leq t_{sys} \}$ 
 
-
-
+// TODO: Zoltan: some conclusion, reflection

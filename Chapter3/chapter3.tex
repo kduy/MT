@@ -102,7 +102,7 @@ In this model, every tuple is assigned an batch-id. Tuples which belong to a bat
 \end{figure}
 
 \end{itemize}
-We extends the examples in~ \citep{Dindar:2013} with experiments on Flink in order to demonstrate that system with different execution model may produce different output , even with the same input and query. 
+We extends the examples in~\citep{Dindar:2013} with experiments on Flink in order to demonstrate that a system with a different execution model may produce a different output, even with the same input and queries. 
 \begin{enumerate}
 
 \item \textbf{Example 1:} \textit{differences in window constructions}.
@@ -171,6 +171,9 @@ Recently, Apache Spark~\citep{spark} and Apache Storm Trident~\citep{storm} have
 %\\TODO:http://www.sqlstream.com/blog/2015/03/5-reasons-why-spark-streamings-batch-processing-of-data-streams-is-not-stream-processing/
 %\\TODO: https://www.cs.berkeley.edu/~matei/papers/2012/hotcloud_spark_streaming.pdf
 %\\TODO: http://hortonworks.com/blog/apache-storm-design-pattern-micro-batching/ 
+
+//TODO: Zoltan: few lines of summary?
+
 
 \section{Policy-based Window Semantics in Flink}
 
@@ -451,5 +454,6 @@ $W=\{s:<v, \_, t_{sys}> \in \mathbb{S} \wedge t_{sys} \leq u_k \wedge  |\{<v,\_,
 \label{fig:countbased_window}
 \end{figure}
 
+//TODO: Zoltan: good! some conclusions, resume?
 
 %\subsubsection*{In case of partitioned group within window}
