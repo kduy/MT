@@ -229,11 +229,12 @@ CREATE SCHEMA StockTickSchema3 (id Int) EXTENDS StockTickSchema
 
 <source> ::= (AS <derived source>) | ( SOURCE <raw source>)
 
-<derived source> ::=  <stream ident>| <subSelect>
+<derived source> ::=   <subSelect> | <merge>
 
 <raw source> ::= 
 				SOCKET `('<host>, <port> [, <delimiter>]`)'
 					\alt FILE `('<file path> [, <delimiter>]`)'
+					\alt STREAM `('<stream name>`)'
 \end{grammar}
 
 A stream cannot be queried unless it is registered with a schema, simply because system require users to specify name of attributes for expression in most of cases. For this reason, we allow to entitle a stream to its schema using CREATE STREAM statement. Except for the reserved keywords, the statement consists of 3 parts. Stream name declaration is followed by schema definition and source of stream. Its schema can be recalled from a previously-defined named schema such as \textit{StockTickSchema}. 
@@ -263,21 +264,6 @@ Derived stream may come from another existing stream or output of a query and it
 
 \subsection{Data Manipulation Language (DML)}
 
-\subsubsection{Insert}
-
-\begin{grammar}
-<insert statement> ::= INSERT INTO <stream ident> [AS] 
-							(<stream ident> | <subSelect>)
-\end{grammar}
-% <merge>
-
-In CREATE STREAM statement, stream identifier and its schema definition are required but its source is optional. It means that registered stream could attached its source later when it is available. In this case, we take the advantage of INSERT statement to complete stream registration procedure. However, we support INSERT statement for derived stream only. It naturally makes sense because a base stream is concrete and should be permanently registered from beginning. We then can insert it into other stream if possible.
-Keep in mind that INSERT statement is a complementary to CREATE STREAM statement in case \textit{<source>} is missing. It will not work for a stream identifier which already refer to a real stream source.
-
-\begin{verbatim}
-	CREATE STREAM StockTick StockTickSchema;
-	INSERT INTO StockTick AS stockStream;
-\end{verbatim}
 
 
 \subsubsection{Merge}
@@ -288,6 +274,23 @@ Keep in mind that INSERT statement is a complementary to CREATE STREAM statement
 One of data stream properties is that data are emitted by a variety of external sources. It is cumbersome to write a similar query for each of substream. To eliminate this duplication, Flink allows to merge various registered stream with same Schema into one. For example, we integrate all StockTick from several Exchange into one:
 \begin{verbatim}
 	MERGE stockTickFromNYSE, stockTickFromAMEX, stockTickFromNASDAQ
+\end{verbatim}
+
+\subsubsection{Insert}
+
+\begin{grammar}
+<insert statement> ::= INSERT INTO <stream ident> [AS] 
+							(<merge> | <subSelect>)
+\end{grammar}
+% <merge>
+
+In CREATE STREAM statement, stream identifier and its schema definition are required but its source is optional. It means that registered stream could attached its source later when it is available. In this case, we take the advantage of INSERT statement to complete stream registration procedure. However, we support INSERT statement for derived stream only. It naturally makes sense because a base stream is concrete and should be permanently registered from beginning. We then can insert it into other stream if possible.
+Keep in mind that INSERT statement is a complementary to CREATE STREAM statement in case \textit{<source>} is missing. It will not work for a stream identifier which already refer to a real stream source.
+
+\begin{verbatim}
+	CREATE STREAM StockTick StockTickSchema;
+	INSERT INTO StockTick AS 
+		MERGE stockTickFromNYSE, stockTickFromAMEX;
 \end{verbatim}
 
 
@@ -313,8 +316,7 @@ insert into SmallTicks select symbol, price where quantity > 0
 <select statement> ::= SELECT <target entry> \{, <target entry>\}\\
 	FROM <stream references> \\
 	WHERE <predicate> \\
-	GROUP BY <attribute ident> \{,<attribute ident>\} \\
-	INTO <stream ident>
+	GROUP BY <attribute ident> \{,<attribute ident>\}
 	
 <stream references> ::= <stream refererence> [<join clause>]
 
