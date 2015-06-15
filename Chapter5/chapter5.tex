@@ -222,16 +222,14 @@ Until now, we have a set of parser rules which produce a parser tree, and also d
   }
 \end{lstlisting}
 
-We do use the combinator $\cup \cup$ to deconstruct the tuple returned by the parser and to thread it into the anonymous pattern-matching function. The last result is a Select object as above. Similar integration rules are applied for other parsing component across the process. 
-If the whole parsing process is successful, query interpreter return a meaningful AST for next step. 
+We do use the combinator $\wedge \wedge$ to deconstruct the tuple returned by the parser and to thread it into the anonymous pattern-matching function. The last result is a Select object as above. Similar integration rules are applied for other parsing component across the process. 
+If the whole parsing process is successful, the processor effectively built the whole semantic model as the AST used by next phrase.
 
 For the sample query, this step return a AST with topmost abstraction is a Select object which is visualized in Figure~\ref{fig:Parse}
 
 \begin{lstlisting}	Select(List(Entry(<constant>,None,ArithExpr(Column(Quantity,Some(s)),*,Column(Price,None))), Entry(Symbol,None,Column(Symbol,Some(StockTick)))),ConcreteStream(Stream(StockTick,Some(s),false),None,None),None,None)
 \end{lstlisting}
  
-
-
 
 \end{itemize}
 
@@ -290,15 +288,22 @@ The output of this phrase is a rewritten AST as \textit{Statement[Stream]} since
 
 
 \subsection{Code Generation}
+The last phrase of interpretation is to generate an executable Flink program in Scala from the output AST of previous phrase. Scala language provides compile-time and run-time reflection to build or manipulate a Scala Abstract Syntax Tree which used to represent Scala programs. 
+
+The compile-time reflection is realized in the form of macros, which provide the ability to execute methods that manipulate Scala AST at compile-time. However, Scala also provide ToolBox api one can generate, compile Scala AST and run Scala code at runtime. 
+
+I design a different set of translation rules to derive a Scala AST from different Statement object which serve as FlinkCQL AST. The Scala AST could be compiled to Flink executatble program in either compile-time or runtime.
 
 Supposed that 
 \begin{equation}
 	\overline{X} = Generate(X)
 \end{equation}
- with $X$ is object abstraction denoting a subtree of a AST and $\overline{X}$ is an equivalent block of Scala code generated from $X$
+ with $X$ is object abstraction denoting a subtree of a AST and $\overline{X}$ is an equivalent block of Scala AST code generated from $X$
 
 \subsubsection*{Select statement Generation}
-Select object has 4 attributes: Projection \textit{proj}, StreamReference \textit{streamRef}, Where \textit{w} and GroupBy \textit{by}. \textit{Where} and \textit{Groupby} attribute object are optional. Supposed that Select object $s$ :
+Select object has 4 attributes: Projection \textit{proj}, StreamReference \textit{streamRef}, Where \textit{w} and GroupBy \textit{by}. \textit{Where} and \textit{Groupby} attribute object are optional. 
+
+Supposed that Select object $s$ :
 \begin{lstlisting}
 s = Select (proj, streamRef, w, by)
 \end{lstlisting}
@@ -339,54 +344,43 @@ There are 2 possible scenarios for optional WindowSpecification object \textit{w
 \end{lstlisting}
 It means that process does query on a DataStream[Row] discretized by windowing technique. The generated block of Flink code for Select object $s$ is defined as
 
-\begin{equation}
-	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).groupBy(\overline{by}).map(\overline{proj})	.window(\overline{size}).every(\overline{every}).groupBy(\overline{partitioned}).mapWindow(\overline{proj}).flatten
-\end{equation} 
+
+\begin{multline}
+	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).groupBy(\overline{by}).map(\overline{proj})	.window(\overline{size}).every(\overline{every}) \\
+	.groupBy(\overline{partitioned}).mapWindow(\overline{proj}).flatten
+\end{multline} 
 
 
-	
 	
 \end{enumerate}
 
-Using Scala compile-time and run-time reflection to build a Scala Abstract Syntax Tree
 
-Translation Rule
+\subsubsection*{Merge statement Generation}
 
-s = Select (projection, streamRef, where, groupBy)
-streamRef = StreamReference(stream, window)
-window = WindowSpecification(size, every, partitioned)
+Merge object has only one member attribute which is list of input Streams
+\begin{equation}
+	\textrm{m = Merge(List(} s_1, s_2, ...s_k \textrm{))}
+\end{equation}
 
+The generated block of Flink code for Merge object \textit{m} is:
+\begin{equation}
+	\overline{m} = \overline{s_1}\textrm{.merge(}\overline{s_2}, ...\overline{s_k} \textrm{))}
+\end{equation}
 
+\subsubsection*{Split statement Generation}
 
+Split object $sp$ has 2 attributes: source stream $s$ and list $insertList$ of Insert objects. Process first extracts targeted Streams and split conditions in \textit{Where} clause  of \textit{Insert} object. It then collects those information to a tuple list $tupleList$ of \textit{(Stream, Where)}. Finally, a Flink program is generated based on $tupleList$ list ,  stream $s$ and \textit{split} function in Flink API.
 
-No window
-s* = stream*.filter(where*).groupBy(groupBy*).map(projection*)
+\begin{align}
+	sp = Split(s, insertList)) \\
+	tupleList: List(Stream, Where) = extract(insertList) \\
+	\overline{sp} = \overline{s}\textrm{.split(}\overline{tupleList})
+\end{align}
 
-Window
-s*= stream*.filter(where*).groupBy(groupBy).window(size*).every(every*).groupBy(partitioned*)
-.mapWindow(projection*).flatten
-
-
-join = StreamRef(s1, w1, Join(s2, w2, condition))
-StreamReference(stream, window) = s1.join(se).onWindow(w1).where(condition)
-
-
-CreateSchema(name, schema, parent)
--> new Schema(name, schema+parent)
-	add (name , Schema) to SQLContext
-
-CreateStream 
-
-Merge(x1, x2) => x1.merge(x2,x3)
-split(x1, Insert (i1, w1))  = x1.split(List(("i1", w1), ("i2", w2))
-insert (s1, source) schema 1 
-
-
-
+For other statement such as \textit{CreateSchema}, \textit{CreateStream} and \textit{Insert}, processor simply creates new objects, establish mapping between Stream and Schema. At the end, all of mapping relationship will be updated to \textit{SQLContext} for later use.
 
 \section{Evaluations}
 
-Compare to other systems
 
 
 \section{Future Works}
