@@ -226,9 +226,7 @@ If the whole parsing process is successful, query interpreter return a meaningfu
 
 For the sample query, this step return a AST with topmost abstraction is a Select object which is visualized in Figure~\ref{fig:Parse}
 
-\begin{lstlisting}
-	Select(List(Entry(<constant>,None,ArithExpr(Field(Quantity,Stream(StockTick,Some(s),false)),*,Field(Price,Stream(StockTick,Some(s),false)))), Entry(Symbol,None,Field(Symbol,Stream(StockTick,Some(s),false)))),ConcreteStream(Stream(StockTick,Some(s),false),None,None),None,None)
-
+\begin{lstlisting}	Select(List(Entry(<constant>,None,ArithExpr(Column(Quantity,Some(s)),*,Column(Price,None))), Entry(Symbol,None,Column(Symbol,Some(StockTick)))),ConcreteStream(Stream(StockTick,Some(s),false),None,None),None,None)
 \end{lstlisting}
  
 
@@ -277,6 +275,11 @@ To solve the problem, each Statement maintains a list of Streams so that FlinkCQ
 
 The output of this phrase is a rewritten AST as \textit{Statement[Stream]} since stream values of  fields are totally resolved.
 
+\begin{lstlisting}
+	Select(List(Entry(<constant>,None,ArithExpr(Field(Quantity,Stream(StockTick,Some(s),false)),*,Field(Price,Stream(StockTick,Some(s),false)))), Entry(Symbol,None,Field(Symbol,Stream(StockTick,Some(s),false)))),ConcreteStream(Stream(StockTick,Some(s),false),None,None),None,None)
+
+\end{lstlisting}
+
 \begin{figure}[h!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{Resolve}
@@ -286,10 +289,45 @@ The output of this phrase is a rewritten AST as \textit{Statement[Stream]} since
 
 
 \subsection{Code Generation}
+
+Supposed that 
+	\begin{equation}
+		X* = Gen(X)
+	\end{equation}
 Using Scala compile-time and run-time reflection to build a Scala Abstract Syntax Tree
 
-
 Translation Rule
+
+ s = Select (projection, streamRef, where, groupBy)
+streamRef = StreamReference(stream, window)
+window = WindowSpecification(size, every, partitioned)
+
+
+
+
+No window
+s* = stream*.filter(where*).groupBy(groupBy*).map(projection*)
+
+Window
+s*= stream*.filter(where*).groupBy(groupBy).window(size*).every(every*).groupBy(partitioned*)
+.mapWindow(projection*).flatten
+
+
+join = StreamRef(s1, w1, Join(s2, w2, condition))
+StreamReference(stream, window) = s1.join(se).onWindow(w1).where(condition)
+
+
+CreateSchema(name, schema, parent)
+-> new Schema(name, schema+parent)
+	add (name , Schema) to SQLContext
+
+CreateStream 
+
+Merge(x1, x2) => x1.merge(x2,x3)
+split(x1, Insert (i1, w1))  = x1.split(List(("i1", w1), ("i2", w2))
+insert (s1, source) schema 1 
+
+
 
 
 \section{Evaluations}
