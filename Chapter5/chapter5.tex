@@ -99,28 +99,142 @@ The interpretation proceed through a series of well-defined phrases (Figure~\ref
 	
 	\item \textbf{Code generation}: In addition to a compact and unambiguous AST, the interpreter also lookup Stream-Schema information from SQLContext to generate a Flink program based on pre-defined translation rules. Last but not at least, we need the Flink stream execution environment to execute our generated code.
 	
-I describe all phrases in following: 
-	
+I describe all phrases processing a simple query: 
+\begin{lstlisting}
+	SELECT s.Quantity * Price, StockTick.Symbol 
+	FROM StockTick AS s
+\end{lstlisting}
+
 \end{itemize}
 \subsection{Scanning and Parsing}
 
 
  Heterogeneous AST
-
 [Manning.DSLs.in.Action.pdf
 Packrat parsing for left recursive DSL syntax
-
 A DSL that needs a packrat parser
 
 
+This phrase is composed of 2 smaller steps : Scanning (lexical analysis) and parsing (syntax analysis).
+
+\textbf{Scanner} reads characters from the query input and use regex patterns to groups them into \textit{lexemes}, which are the lexically meaningful units of the program, and produces as output tokens representing these lexemes. A token consists of two components: a token class and value. For example, in token \textit{<keyword, ``select">}, its class is \textit{keyword} and its value is ``select''. 
+
+In FlinkCQL, we define several token classes and its corresponding regex pattern in Table~\ref{table:TokenClass}
+
+
+\begin{table}[h]
+\caption{Token classes}
+\centering
+\label{table:TokenClass}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{2in}   |>{\centering\arraybackslash}m{3in}||}
+\hline
+\textbf{Token class} & \textbf{Description} \\ \hline\hline
+                 Identifier  & strings of letters or digits, starting with a letter. Regex: 
+                                \\ \hline
+                   Keyword	  & reserved keywords which cannot be declared as an Identifier. Example: select, from , as, insert, create, stream, schema,... \\ \hline
+                   Integer		& a non-empty string of digits with sign (optional) \\ \hline %-?\d+
+				   DecimalNumber		&  An integer followed by a decimal point and fractional part. One of the parts can be missing except for the decimal point. Example: $2.2$, $3.$, $.1$   \\ \hline %\textrm{(\d+(\.\d*)?|\d*\.\d+)}
+					floatingPointNumber	& represented approximately to a fixed number of significant digits (the significand) and scaled using an exponent. For example, $3E-5$			               \\ \hline		%-?(\d+(\.\d*)?|\d*\.\d+)([eE][+-]?\d+)?[fFdD]?						
+					stringLiteral		& Single quotes enclosing a sequence of string. For example: 'IBM', 'AAPL'			 \\ \hline
+					Whitespace		& a non-empty sequence of blanks, newlines, and tabs.	 		                      \\ \hline								
+					Other	& addition strings to make up the query. For example: (, ), . , {, }		                     \\ \hline							           							           							           							           
+\end{tabular}
+\end{table}
+
+The regex pattern of these tokens are supported in \textit{JavaTokenParsers} class in Scala language. The output of this steps is a sequence of tokens. For examples, the list of tokens derived from the previous query sample:
+\begin{lstlisting}
+	<keyword, "SELECT">, <identifier, "s">, <other, ".">,
+	<identifier, "Quantity">, <other, "*">, 
+	<identifier, "Price">, <other, ",">, 
+	<identifier, "StockTick">, <other, ".">,
+	<identifier, "Symbol">, <keywork, "FROM">,
+	<identifier, "StockTick">, <keywork, "AS">, 
+	<identifier, "s">   
+\end{lstlisting}
+
+Oviously, scanner helps reduce the size of the input (there are many more characters than tokens) and remove extraneous characters like white space. Thus  , scanning is considered a pre-processing step to simplify the task of the parser.
+
+\textbf{Parser} helps organize the input tokens into an AST. We build up an AST for each query using Packrat Parser which is available in Scala Parser Combinators. 
+In short, Packrat Parsing is a technique for implementing backtracking,recursive-descent parsers, with the advantage that it guarantees unlimited lookahead and a \textit{linear} parse time. Using this technique, left recursive grammars can also be accepted.
+
+To produce a complete meaningful AST using Scala parser combinators, we goes through a procedure of 4 substeps:
 \begin{itemize}
-	\item Step 1: Executing the grammar
-	\item Step 2: Building the semantic model for the DSL
-	\item Step 3: Designing the Order abstraction
-	\item Step 4: Generating the AST using function application combinators
+
+\item \textbf{Step 1:} Executing the grammar
+
+Based on the EBNF grammars of FlinkCQL which are described mostly in session~\ref{language}, we write equivalent executable grammars in Scala syntax with helps of combinators:
+\begin{itemize}
+	\item $p_1 \sim p_2$: sequencing combinator: must match $p_1$ followed by $p_2$. For example, Projection Clause is followed by From Clause
+	\item $p_1$ | $p_2$: alternation combinator: must match either $p_1$ or $p_2$, with preference given to $p_1$. For example, window policy can be either time-based or count-based.
+	\item $opt(p_1)$ : optionality combinator: may match $p_1$ or not. For example, Where clause is optional in Select Statement
+	\item $rep(p_1)$ : repetition combinator: matches any number of repetitions of $p_1$. For instance: there is one or more entries in Projection Clause.
+\end{itemize} 
+
+In our processor, we define a grammar for \textit{Select} Statement as :
+\begin{lstlisting}
+lazy val selectStmtSyntax = projectionClause ~ fromClause ~ opt(whereClause) ~ opt(groupByClause)
+\end{lstlisting}
+It means that \textit{projectionClause} is followed by a \textit{fromClause}, an optional \textit{whereClause} and a optional \textit{groupByClause} in order.
+
+The topmost abstraction of the FlinkCQL grammar is \textit{Statement}. It can express either \textit{Select}, \textit{Create schema}, \textit{Create stream}, \textit{Merge}, \textit{Insert}, \textit{Split} query syntax.
+\begin{lstlisting}
+lazy val stmt = (selectStmtSyntax| createSchemaStmtSyntax | createStreamStmtSyntax | MergeStmtSyntax  | insertStmtSyntax| splitStmtSyntax)
+\end{lstlisting}
+
+The parsing process of the grammar will generate a parse tree but the ouput tree is represented by a string. Let us consider the parse tree of the sample query:
+\begin{lstlisting}
+((List(((((s~.)~Quantity),*,Price)~None),(((StockTick~.)~Symbol)~None))~(((StockTick~None)~Some(s))~None))~None)~None
+\end{lstlisting}
+The List denote that the query require 2 entries in projection clause. The last 2 \textit{None} values express that \textit{Where} clause and \textit{GroupBy} clause is missing.
+
+However, this output format is useless for next steps since it is also a string in a different way. Thus, we need to design a more powerful abstract semantic model and integrate it to the parser tree so that the parser will return a \textbf{Statement} object , instead of a string. Once we obtain a \textbf{Statement} object, we are able to extract  exploit its components recursively for further. As long as we build a complete semantic model for FlinkCQL (in Step 2), Scala offers a bunch of function application combinators to plug directly these semantic abstractions to the parse rules (in Step 3)
+
+\item \textbf{Step 2:} Building the semantic model for the FlinkCQL
+
+As we mentioned above, the topmost abstraction of FlinkCQL is \textit{Statement} which we can defined in Scalas as a \textit{trait} (similar to Interface).
+\begin{lstlisting}
+	sealed trait Statement[T]
+	case class CreateSchema[T](...) extends Statement[T]
+	case class CreateStream[T](...) extends Statement[T]
+	case class Select[T](...) extends Statement[T]
+	case class Insert[T](...) extends Statement[T]
+	case class Merge[T](...) extends Statement[T]
+	case class Split[T](...) extends Statement[T]
+\end{lstlisting}
+
+Each case class of \textit{Statement} contain its attributes as child nodes in the whole AST model. Each of these attribute may contains several child notes as well. For example, each entry in Select's projection clause is composed of its name, alias name and an expression
+
+\begin{lstlisting}
+	case class Entry[T](name: String, alias: Option[String], expr: Expr[T])
+\end{lstlisting}
+
+Hence, we are able to build up a complete semantic model for FlinkCQL using top-down approach.
+
+
+\item \textbf{Step 3:} Generating the AST using function application combinators
+Until now, we have a set of parser rules which produce a parser tree, and also design a underlying domain-level abstractions of FlinkCQL. The last step to generate a AST is to plug suitable abstractions into grammar rules using Scala function application combinators. Consider the following examples of \textit{Select} query:
+
+\begin{lstlisting}
+	lazy val selectStmtSyntax = selectClause ~ fromClause ~ opt(whereClause) ~opt(groupBy) ^^ {
+    case s ~ f ~ w ~ g => Select(s, f,w, g)
+  }
+\end{lstlisting}
+
+We do use the combinator $\cup \cup$ to deconstruct the tuple returned by the parser and to thread it into the anonymous pattern-matching function. The last result is a Select object as above. Similar integration rules are applied for other parsing component across the process. 
+If the whole parsing process is successful, query interpreter return a meaningful AST for next step. 
+
+For the sample query, this step return a AST with topmost abstraction is a Select object which is visualized in Figure~\ref{fig:Parse}
+
+\begin{lstlisting}
+	Select(List(Entry(<constant>,None,ArithExpr(Field(Quantity,Stream(StockTick,Some(s),false)),*,Field(Price,Stream(StockTick,Some(s),false)))), Entry(Symbol,None,Field(Symbol,Stream(StockTick,Some(s),false)))),ConcreteStream(Stream(StockTick,Some(s),false),None,None),None,None)
+
+\end{lstlisting}
+ 
+
+
+
 \end{itemize}
-
-
 
 
 \begin{figure}[h!] 
@@ -132,36 +246,43 @@ A DSL that needs a packrat parser
 
 
 \subsection{Query Rewriting}
-Pattern Matching
+The AST, which is produced from previous phrase, is analyzed directly from FlinkCQL query string. For some reason, the query may not be optimal. Consider a very simple example, one entry in projection clause: $Quantity\, +\, Quantity$, which could be replaced by $Quantity\, *\, 2$. Such query rewriting rules optimize the AST but optional. 
 
-We apply one rewriting rule for subquery:
+We  do implement a AST rewriting rule that helps to reduce the numbers of translation rules in Code Generation phrase. This rewriting rule is apply to a subquery clause which produce an output \textit{Windowed Stream}. If we able to rewrite it to a new subquery that returns a concrete DataStream instead, we need not to define any translation rule for Windowed Stream anymore.
+
+Consider two queries which have identical meaning:
+
 \begin{lstlisting}
 From (select Symbol,Price From StockTick [Size 3]) as s
 =
 From (select Symbol,Price From StockTick) [Size 3] as s
 \end{lstlisting}
 
-In the first query , its subquery will return a Windowed Stream which is not supported now. Therefore the query is invalid
+In the first query , its subquery will return a Windowed Stream which is not supported. Therefore the query is invalid. In the second query, its subquery return a concrete DataStream which is acceptable.
 
-In the second query, its subquery return a concrete DataStream which is acceptable.
-
-However, the 2 queries are identical in term of semantics. Thus, we transform the first to the second.
-
+The change we made on AST structure of the first query is to move the window of the subquery to its upper-level (From clause). Thus,in the new structure (query 2), the subquery will produce a \textit{DataStream} of \textit{(Symbol, Price)} whereas the upper-level will process on a windowed stream with size of 3. 
 
 \subsection{Resolving}
+Looked at the Figure~\ref{fig:QueryProcessing} again,  the output of last 2 phrases is a \textit{Statement} object with type parameter is \textit{Optional[String]}.
+It indicates that there are some potential fields/columns whose streams are not specified in AST. In other words, the value of \textit{stream} is None.
+\begin{lstlisting}
+	case class Field[T](name: String, stream : T)
+\end{lstlisting}
+
+In the example (Figure~\ref{fig:Parse}), there are three fields: ``StockTick.Symbol”, ``s.Quantity”, ``Price”. Their \textit{stream} value is ``StockTick", ``s" , and None respectively. The interpreter is not sure if those identifier of streams are exist or not. Moreover, it is impossible to operate on a field that its stream is ambiguous. Thus, we need to figure out  which streams that ``Symbol”, ``Quantity”, ``Price”  fields refer to.
+
+This step helps to resolve the problem so that we can generate the exact Flink program in next phrase.
+
+To solve the problem, each Statement maintains a list of Streams so that FlinkCQL processor can look up to resolve which streams the fields refer to. Recall the example, processor acknowledges that there is one Stream exists whose name and alia are ``StockTick'' and ``s''. Since the prefix of the fields match either those values or None, the stream of fields are updated to ``StockTick'' (Figure~\ref{fig:Resolve})
+
+The output of this phrase is a rewritten AST as \textit{Statement[Stream]} since stream values of  fields are totally resolved.
+
 \begin{figure}[h!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{Resolve}
 \caption{Resolve}
 \label{fig:Resolve}
 \end{figure}
-
-Pattern Matching
-15 Tree pattern matcher
-
-
-In the example, we are going to figure out  which streams that “StockTick.Symbol”, “s.Quantity”, “Price”  projections refer to. This step is important because perhaps many different streams have 2 fields which have an identical name. For example, 2 streams may own a field which is “Price”. 
-This step helps to resolve which fields belongs to which streams so that we can generate the exact code for the query
 
 
 \subsection{Code Generation}
