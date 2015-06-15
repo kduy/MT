@@ -297,7 +297,7 @@ Keep in mind that INSERT statement is a complementary to CREATE STREAM statement
 \subsubsection{Split}
 \begin{grammar}
 <split statement> ::= ON <stream ident> \\
-						<insert clause> \{, <insert clause>\}
+						<insert clause> \{; <insert clause>\}
 						
 <insert clause> ::= INSERT INTO <stream ident> \\SELECT <target entry list> WHERE <predicate>
 \end{grammar}

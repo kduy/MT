@@ -71,9 +71,9 @@ Stream and Schema are unique but many Stream can share a Schema. And a Stream is
 \end{figure}
 
 \subsection{Data Manipulation Processing}
-Data Manipulation Processing is used to process Data Manipulation Queries such as SELECT, MERGE, SPLIT, INSERT. These queries specify which operators to process on given Streams and its Fields. System will look up its SQLContext to retrieve the actual input DataStream[Row]. Operator and Schema are to decide how to transform input DataStreams to a new one. The output of processing is either one or more Streams which are updated into SQLContext or a DataStream of tuple. This DataStream of tuple can be consumed to create other Stream via \textit{CREATE STREAM} query. For examples, the output of \textit{SELECT} query is a DataStream of tuple but the outputs of \textit{SPLIT} query are more than one Stream with its Schema and DataStream[Row].
+Data Manipulation Processing is used to process Data Manipulation Queries such as SELECT, MERGE, SPLIT, INSERT. These queries specify which operators to process on given Streams and its Fields. System will look up its SQLContext to retrieve the actual input DataStream[Row]. Operator and Schema are to decide how to transform input DataStreams to a new one. The output of processing is either one or more Streams which are updated into SQLContext or a DataStream of tuple. This DataStream of tuple can be consumed to create other Stream via \textit{CREATE STREAM} query. For examples, the output of \textit{SELECT} query is a DataStream of tuple but the outputs of \textit{SPLIT} query are more than one Stream~(along with its Schema and DataStream[Row]).
 
-\section{Query Interpreter}
+\section{FlinkCQL Query Interpreter}
 \begin{figure}[h!] 
 \centering    
 \includegraphics[width=0.7\textwidth]{QueryProcessing}
@@ -81,9 +81,47 @@ Data Manipulation Processing is used to process Data Manipulation Queries such a
 \label{fig:QueryProcessing}
 \end{figure}
 
-Tree-Based Interpreter
 
-\subsection{Parsing}
+//TODO: Tree-Based Interpreter~\citep{Parr:2009}
+[Programming Language Pragmatics, Third Edition.pdf page 57
+
+
+Flink Stream Processing is offering a rich set of API to deal with one or  multiple input DataStream[T]. Our goal is to build an extension which accepts FlinkCQL query strings as commands and translate the commands to  corresponding programs constructed with Flink's APIs. Thus we are simply required to build a interpreter instead of a compiler from a scratch. For the purpose, I have implemented a tree-based interpreter~\citep{Parr:2009} to process FlinkCQL query. The idea is that the query interpreter executes program by constructing an abstract syntax tree~(AST) from the input query string and walking through the tree to generate a executable Flink program. More specifically, AST is a form of intermediate representation of the hierarchical syntactical structure of the source program written in query.  
+	
+
+The interpretation proceed through a series of well-defined phrases (Figure~\ref{fig:QueryProcessing}). Each phrase transforms or extracts information of use from the output of previous phrase and return a result which is a input of next phrase. In first proof-of-concept prototype, we build a pipeline consisting of 4 steps:
+\begin{itemize}
+	\item \textbf{Scanning and parsing:} serve to recognize the structure of the program, without regard to its meaning. This steps produce an AST with its root is highest semantic level of query : \textit{Statement[Option[String]]}
+
+	\item \textbf{Rewriting} is to modify a sub-tree of AST to a more compact, optimal AST without changing the semantic of program.
+	
+	\item \textbf{Resolving:} It is possible that two or more streams, which are specified in query,  shares the same Schema. Thus, there is a potential ambiguity between two fields which have a identical name but belong to different stream. This phrase is to figure out to which fields refers. It is clear that we cannot generate code from an ambiguous AST.
+	
+	\item \textbf{Code generation}: In addition to a compact and unambiguous AST, the interpreter also lookup Stream-Schema information from SQLContext to generate a Flink program based on pre-defined translation rules. Last but not at least, we need the Flink stream execution environment to execute our generated code.
+	
+I describe all phrases in following: 
+	
+\end{itemize}
+\subsection{Scanning and Parsing}
+
+
+ Heterogeneous AST
+
+[Manning.DSLs.in.Action.pdf
+Packrat parsing for left recursive DSL syntax
+
+A DSL that needs a packrat parser
+
+
+\begin{itemize}
+	\item Step 1: Executing the grammar
+	\item Step 2: Building the semantic model for the DSL
+	\item Step 3: Designing the Order abstraction
+	\item Step 4: Generating the AST using function application combinators
+\end{itemize}
+
+
+
 
 \begin{figure}[h!] 
 \centering    
@@ -92,8 +130,22 @@ Tree-Based Interpreter
 \label{fig:Parse}
 \end{figure}
 
- Heterogeneous AST
 
+\subsection{Query Rewriting}
+Pattern Matching
+
+We apply one rewriting rule for subquery:
+\begin{lstlisting}
+From (select Symbol,Price From StockTick [Size 3]) as s
+=
+From (select Symbol,Price From StockTick) [Size 3] as s
+\end{lstlisting}
+
+In the first query , its subquery will return a Windowed Stream which is not supported now. Therefore the query is invalid
+
+In the second query, its subquery return a concrete DataStream which is acceptable.
+
+However, the 2 queries are identical in term of semantics. Thus, we transform the first to the second.
 
 
 \subsection{Resolving}
@@ -105,13 +157,18 @@ Tree-Based Interpreter
 \end{figure}
 
 Pattern Matching
+15 Tree pattern matcher
 
 
-\subsection{Query Rewriting}
-Pattern Matching
+In the example, we are going to figure out  which streams that “StockTick.Symbol”, “s.Quantity”, “Price”  projections refer to. This step is important because perhaps many different streams have 2 fields which have an identical name. For example, 2 streams may own a field which is “Price”. 
+This step helps to resolve which fields belongs to which streams so that we can generate the exact code for the query
 
 
 \subsection{Code Generation}
+Using Scala compile-time and run-time reflection to build a Scala Abstract Syntax Tree
+
+
+Translation Rule
 
 
 \section{Evaluations}
