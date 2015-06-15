@@ -216,7 +216,8 @@ Hence, we are able to build up a complete semantic model for FlinkCQL using top-
 Until now, we have a set of parser rules which produce a parser tree, and also design a underlying domain-level abstractions of FlinkCQL. The last step to generate a AST is to plug suitable abstractions into grammar rules using Scala function application combinators. Consider the following examples of \textit{Select} query:
 
 \begin{lstlisting}
-	lazy val selectStmtSyntax = selectClause ~ fromClause ~ opt(whereClause) ~opt(groupBy) ^^ {
+	lazy val selectStmtSyntax = 
+	selectClause ~ fromClause ~ opt(whereClause) ~opt(groupBy) ^^ {
     case s ~ f ~ w ~ g => Select(s, f,w, g)
   }
 \end{lstlisting}
@@ -291,14 +292,67 @@ The output of this phrase is a rewritten AST as \textit{Statement[Stream]} since
 \subsection{Code Generation}
 
 Supposed that 
+\begin{equation}
+	\overline{X} = Generate(X)
+\end{equation}
+ with $X$ is object abstraction denoting a subtree of a AST and $\overline{X}$ is an equivalent block of Scala code generated from $X$
+
+\subsubsection*{Select statement Generation}
+Select object has 4 attributes: Projection \textit{proj}, StreamReference \textit{streamRef}, Where \textit{w} and GroupBy \textit{by}. \textit{Where} and \textit{Groupby} attribute object are optional. Supposed that Select object $s$ :
+\begin{lstlisting}
+s = Select (proj, streamRef, w, by)
+\end{lstlisting}
+
+StreamReference object has up to 3 attributes :  Stream stream, window Specification ws and Join j.
+\begin{lstlisting}
+	streamRef = StreamReference(stream, ws, j)
+\end{lstlisting}
+
+However, we can generate a StreamReference object from Join object in condition that WindowSpecification object $w_1$ and $w_2$ specify a same time-based window. Otherwise, processor is not able to generate code of Join object due to Flink's functionality constraint.
+\begin{equation}
+	\textrm{j = StreamRef(}s_1,\, w_1,\, \textrm{Join(}s_2,\, w_2, \textrm{joinCondition))}
+\end{equation}
+\begin{equation}
+StreamReference(stream, ws) = \overline{  s_1}\textrm{.join(}\overline{s_2})\textrm{.onWindow(}\overline{s_2}\textrm{).where(}\overline{joinCondition}\textrm{)}
+\end{equation}
+in which, ``join'', ``onWindow'', ``where'' are Flink's functions applied to  \textit{DataStream[Row]} object generated from $s_1$
+
+Therefore, we can assume that
+\begin{lstlisting}
+	streamRef = StreamReference(stream, ws)
+\end{lstlisting}
+
+
+
+There are 2 possible scenarios for optional WindowSpecification object \textit{ws}:
+\begin{enumerate}
+	\item \textbf{\textit{ws} is undeclared}. It means that processor does query on a \textit{DataStream[Row]}.  The generated block of Flink code for Select object $s$ is defined as
+	
 	\begin{equation}
-		X* = Gen(X)
-	\end{equation}
+	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).map(\overline{proj})
+\end{equation}
+	Be aware that \textit{GroupBy} operator is not applicable for a concrete Stream because it partitions the original stream into multiple undefined streams which processor can not feed as am input stream for other queries. 
+	
+	\item \textbf{\textit{ws} is defined} as:
+		\begin{lstlisting} 
+	ws = WindowSpecification(size, every, partitioned)
+\end{lstlisting}
+It means that process does query on a DataStream[Row] discretized by windowing technique. The generated block of Flink code for Select object $s$ is defined as
+
+\begin{equation}
+	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).groupBy(\overline{by}).map(\overline{proj})	.window(\overline{size}).every(\overline{every}).groupBy(\overline{partitioned}).mapWindow(\overline{proj}).flatten
+\end{equation} 
+
+
+	
+	
+\end{enumerate}
+
 Using Scala compile-time and run-time reflection to build a Scala Abstract Syntax Tree
 
 Translation Rule
 
- s = Select (projection, streamRef, where, groupBy)
+s = Select (projection, streamRef, where, groupBy)
 streamRef = StreamReference(stream, window)
 window = WindowSpecification(size, every, partitioned)
 
