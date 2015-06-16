@@ -374,6 +374,10 @@ For other statement such as \textit{CreateSchema}, \textit{CreateStream} and \te
 \subsection*{Experimental environment}
 The proof-of-concept prototype of FlinkCQL query interpreter is built and tested on a machine equipped Intel Core i7 2,6 GHz, memory of 16Gb RAM, and free space of 10Gb in harddisk, running MacOS 10.10.3.
 
+
+The source code is committed to Flink repository at Github~ (\href{https://goo.gl/V6Y5dK}{https://goo.gl/V6Y5dK})
+
+
 \subsection{Two testing phrases}
 Recall that processor goes through 4 phrases to complete the interpretation process. The first 3 phrases is to build up a semantic AST from a input query string. The last phrase is to generate an executable program from the AST and SQL Context and execution environment. We recognize the first 3 phrases is nearly independent from input data streams.  Therefore, we decide to evaluate the results in 2 phrases:
 
@@ -396,7 +400,7 @@ Hence, we decide to test the AST construction on our own set of queries (Appendi
 
 \begin{figure}[h!] 
 \centering    
-\includegraphics[width=0.6\textwidth]{ASTConstruction}
+\includegraphics[width=0.5\textwidth]{ASTConstruction}
 \caption{AST Construction Testing}
 \label{fig:ASTConstruction}
 \end{figure}
@@ -434,7 +438,7 @@ The third query is to observe tax which owners need to pay. The last query is ju
 
 \begin{figure}[h!] 
 \centering    
-\includegraphics[width=0.6\textwidth]{ExecutableProgram}
+\includegraphics[width=0.5\textwidth]{ExecutableProgram}
 \caption{Executable Program Testing}
 \label{fig:ExecutableProgram}
 \end{figure}
