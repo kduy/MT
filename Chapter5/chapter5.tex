@@ -82,10 +82,6 @@ Data Manipulation Processing is used to process Data Manipulation Queries such a
 \end{figure}
 
 
-//TODO: Tree-Based Interpreter~\citep{Parr:2009}
-[Programming Language Pragmatics, Third Edition.pdf page 57
-
-
 Flink Stream Processing is offering a rich set of API to deal with one or  multiple input DataStream[T]. Our goal is to build an extension which accepts FlinkCQL query strings as commands and translate the commands to  corresponding programs constructed with Flink's APIs. Thus we are simply required to build a interpreter instead of a compiler from a scratch. For the purpose, I have implemented a tree-based interpreter~\citep{Parr:2009} to process FlinkCQL query. The idea is that the query interpreter executes program by constructing an abstract syntax tree~(AST) from the input query string and walking through the tree to generate a executable Flink program. More specifically, AST is a form of intermediate representation of the hierarchical syntactical structure of the source program written in query.  
 	
 
@@ -108,11 +104,6 @@ I describe all phrases processing a simple query:
 \end{itemize}
 \subsection{Scanning and Parsing}
 
-
- Heterogeneous AST
-[Manning.DSLs.in.Action.pdf
-Packrat parsing for left recursive DSL syntax
-A DSL that needs a packrat parser
 
 
 This phrase is composed of 2 smaller steps : Scanning (lexical analysis) and parsing (syntax analysis).
@@ -380,22 +371,70 @@ Split object $sp$ has 2 attributes: source stream $s$ and list $insertList$ of I
 For other statement such as \textit{CreateSchema}, \textit{CreateStream} and \textit{Insert}, processor simply creates new objects, establish mapping between Stream and Schema. At the end, all of mapping relationship will be updated to \textit{SQLContext} for later use.
 
 \section{Evaluations}
+\subsection*{Experimental environment}
+The proof-of-concept prototype of FlinkCQL query interpreter is built and tested on a machine equipped Intel Core i7 2,6 GHz, memory of 16Gb RAM, and free space of 10Gb in harddisk, running MacOS 10.10.3.
+
+\subsection{Two testing phrases}
+Recall that processor goes through 4 phrases to complete the interpretation process. The first 3 phrases is to build up a semantic AST from a input query string. The last phrase is to generate an executable program from the AST and SQL Context and execution environment. We recognize the first 3 phrases is nearly independent from input data streams.  Therefore, we decide to evaluate the results in 2 phrases:
+
+\begin{itemize}
+	\item \textbf{AST construction} testing phrase: to evaluate the output AST of the first 3 steps: scanning -  parsing, rewriting and resolving
+	\item \textbf{Executable Program}: to evaluate complete interpretation process.
+\end{itemize}
+
+\subsubsection{Phrase 1: AST Construction}
+Each Stream Processing engine may define its own continuous query language. Up to now, there is no benchmark such as \textit{TPC-H} to evaluate and measure the correctness and performance of query-based stream processing engine. 
+Hence, we decide to test the AST construction on our own set of queries (Appendix A). Queries are broken into 6 groups corresponding to its types: 
+\begin{itemize}
+	\item Group 1: Create Schema query
+	\item Group 2: Create Stream query
+	\item Group 3: Select query
+	\item Group 4: Merge query
+	\item Group 5: Insert query
+	\item Group 6: Split query
+\end{itemize} 
+
+\begin{figure}[h!] 
+\centering    
+\includegraphics[width=0.6\textwidth]{ASTConstruction}
+\caption{AST Construction Testing}
+\label{fig:ASTConstruction}
+\end{figure}
+
+Figure~\ref{fig:ASTConstruction} depicts the maximum runtime (in milliseconds) of each phrases in each group. We observe that Select and Split query usually take longer time to process since they have most complicated syntax. However, the maximum of total process is less than \textbf{70 milliseconds\textit{•}} only. In additional, a large portion of time is to parsing the input query string to the first AST. 
+
+\subsubsection{Phrase 2: Executable Program}
 
 
 
-\section{Future Works}
+We finally implement a complete application consisting of 4 queries in order:
 
-Dynamic variable
+\begin{table}[h!]
+\caption{Code Generation Test}
+\centering
+\label{table:GenerationTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     		1 & 	       create schema carSchema (carID Int, price Int)\\ \hline
+     		2 & create stream CarStream carSchema source stream ('CarSales')	       \\ \hline
+     	3 & 		select carID, c.price * 0.05 as tax from CarStream as c       \\ \hline
+     	4 &	select c.pr * 1.05 as fullTax from (select pr from (select carID , price  as pr from CarStream) as d) as c	       \\ \hline
+	           				
+ \end{tabular}
+\end{table}
 
+We are able to register a \textit{CarStream} stream which is derived from user-defined DataStream[Car] named ``CarSales''
+\begin{lstlisting}
+ 	case class Car (carID: Int, price: Int)
+\end{lstlisting}
 
-http://www.sqlstream.com/blog/2015/03/5-reasons-why-spark-streamings-batch-processing-of-data-streams-is-not-stream-processing/
+The third query is to observe tax which owners need to pay. The last query is just to demonstrate that we are able to write n-nested layer with FlinkCQL. Even with this complex query, the whole interpretation process takes less than 60 milliseconds to generate an executable program since the query was received.  Consider that the stream is possibly unbound, the latency of 60 milliseconds to translate the query is not considerable. 
 
-
-
-Data Input
-http://flink.apache.org/news/2015/05/11/Juggling-with-Bits-and-Bytes.html
-
-
-http://ci.apache.org/projects/flink/flink-docs-master/internals/fig/stack.svg
-
-http://ci.apache.org/projects/flink/flink-docs-master/internals/general\_arch.html
+\begin{figure}[h!] 
+\centering    
+\includegraphics[width=0.6\textwidth]{ExecutableProgram}
+\caption{Executable Program Testing}
+\label{fig:ExecutableProgram}
+\end{figure}

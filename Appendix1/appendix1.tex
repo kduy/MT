@@ -1,58 +1,124 @@
 % ******************************* Thesis Appendix A ****************************
-\chapter{Notices} 
+\chapter{Query Interpreter Testing} 
 
 
-\textbf{NOTE}
-file:///Volumes/Data/WORKSPACE/git/thesis/rrd-antlr4/target/output/Json/index.html
+\begin{table}[h]
+\caption{Group 01: Create Schema}
+\centering
+\label{table:createSchemaTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     1  &  create schema mySchema0 (speed int, time long) \\ \hline
+      2  &  create schema mySchema1 mySchema0 \\ \hline
+      3  &  create schema mySchema2 (id int) extends mySchema0 \\ \hline
+      4  &  CREATE SCHEMA StockTickSchema (symbol String, sourceTimestamp Long, price Double, quantity Int, exchange String) \\ \hline
+      5  &  CREATE SCHEMA StockTickSchema2 StockTickSchema \\ \hline
+       6 &  CREATE SCHEMA StockTickSchema3 (id Int) EXTENDS StockTickSchema \\ \hline					           				
+ \end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\caption{Group 02: Create Stream}
+\centering
+\label{table:createStreamTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     	
+     1   &   create stream CarStream (speed int) source stream ('cars') \\ \hline
+      2   &   create stream CarStream carSchema source stream ('cars') \\ \hline
+       3  &   create stream myStream(time long) as select p.id from oldStream as p \\ \hline
+       4  &   create stream myStream(time long) as merge x1, x2, x3 \\ \hline
+       5  &   CREATE STREAM StockTick StockTickSchema \\ \hline
+       6  &   CREATE STREAM StockTick (symbol String, price Double, quantity Int) \\ \hline
+       7  &   CREATE STREAM StockTick StockTickSchema source SOCKET ('98.138.253.109', 2000,';') \\ \hline
+       8  &   CREATE STREAM StockTick StockTickSchema source Stream ('stockDataStream') \\ \hline
+       9  &   CREATE STREAM StockTick (symbol String, price Double, quantity Int) source file ('//server/file.txt') \\ \hline
+       10  &   CREATE STREAM StockPrice (symbol String, price Double) AS SELECT symbol, price FROM StockTick\\ \hline\hline				           				
+ \end{tabular}
+\end{table}
 
 
 
 
 
+\begin{table}[h]
+\caption{Group 03: Select}
+\centering
+\label{table:selectTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     	1	   &  select s.Quantity * Price + 10.2, StockTick.Symbol from StockTick as s \\ \hline
+        2 &  select s.Quantity * Price + 10.2, s.Symbol from StockTick as s where s.price > 90.5 and Quantity <= 100000 \\ \hline
+        3 &  select c.price * 1000 from (select plate , price  from CarStream ) as c \\ \hline
+       4  &  select max(s1.price), avg(s2.quantity) from stream1 [size 3 sec] as s1 cross join stream2 [size 3 sec] as s2 \\ \hline
+       5  &  select time, min(price)+1 from stream1 [size 3] as s1 left join stream2 [size 3] as s2 on s1.time=s2.time \\ \hline
+       6  &  select id from (select p.id as id from oldStream2 as p) [size 3 partitioned on s] as q \\ \hline
+       7  &  select  from stream1 [size 3 on s] as s1 left join stream2 [size 3 on s] as s2 on s1.time=s2.thoigian \\ \hline
+        8 &  select id from stream1 [size 3 min] as s1 left join stream2 [size 3 min] as s2 using time \\ \hline
+        9 &  Select Count(*) From Bid[Size 1 partitioned on field1] Where  item\_id <= 200 or item\_id >= 100 group by item\_id \\ \hline
+       10  &  select count(price) from (select plate , price  from CarStream [Size 1]) as c \\ \hline
+       11  &  select count(price) from (select plate , price  from CarStream) [Size 1] as c \\ \hline
+       12  &  select * from (select plate , price from (select plate , price from (select plate , price from CarStream [Size 1] ) as e ) as d ) as c \\ \hline
+       13  &  select c.plate + 1000/2.0 from (select plate as pr from (select plate , price + 1 as pr from CarStream) as d) as c \\ \hline
+        14 &  Select count(*), max(item\_id) From (Select * From Bid Where item\_id >= 100 and item\_id <= 200) [Size 10] p \\ \hline
+    		           				
+ \end{tabular}
+\end{table}
 
 
 
-\subsubsection*{Installation}
-\begin{enumerate}
-\item	Mount the ISO file in the mnt directory
-\begin{verbatim}
-mount -t iso9660 -o ro,loop,noauto /your/texlive####.iso /mnt
-\end{verbatim}
+\begin{table}[h]
+\caption{Group 04: Merge}
+\centering
+\label{table:MergeTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     1 & MERGE stockTickFromNYSE, stockTickFromAMEX, stockTickFromNASDAQ\\ \hline
+      2 & merge x1, x2, x3\\ \hline
+     				           				
+ \end{tabular}
+\end{table}
 
-\item	Install wget on your OS (use rpm, apt-get or yum install)
-\item	Run the installer script install-tl.
-\begin{verbatim}
-	cd /your/download/directory
-	./install-tl
-\end{verbatim}
-\item	Enter command `i' for installation
 
-\item	Post-Installation configuration:\\
-\href{http://www.tug.org/texlive/doc/texlive-en/texlive-en.html\#x1-320003.4.1}
-{http://www.tug.org/texlive/doc/texlive-en/texlive-en.html\#x1-320003.4.1} 
-\item	Set the path for the directory of TexLive binaries in your .bashrc file
-\end{enumerate}
+\begin{table}[h]
+\caption{Group 05: Insert}
+\centering
+\label{table:InsertTest}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     1 & INSERT INTO StockTick AS MERGE stockTickFromNYSE, stockTickFromAMEX \\ \hline
+       2 & INSERT INTO StockTick AS SELECT symbol, price FROM StockTick where quantity > 100000 \\ \hline
+   
+     				           				
+ \end{tabular}
+\end{table}
 
-\subsubsection*{For 32bit OS}
-For Bourne-compatible shells such as bash, and using Intel x86 GNU/Linux and a default directory setup as an example, the file to edit might be \begin{verbatim}
-edit $~/.bashrc file and add following lines
-PATH=/usr/local/texlive/2011/bin/i386-linux:$PATH; 
-export PATH 
-MANPATH=/usr/local/texlive/2011/texmf/doc/man:$MANPATH;
-export MANPATH 
-INFOPATH=/usr/local/texlive/2011/texmf/doc/info:$INFOPATH;
-export INFOPATH
-\end{verbatim}
-\subsubsection*{For 64bit OS}
-\begin{verbatim}
-edit $~/.bashrc file and add following lines
-PATH=/usr/local/texlive/2011/bin/x86_64-linux:$PATH;
-export PATH 
-MANPATH=/usr/local/texlive/2011/texmf/doc/man:$MANPATH;
-export MANPATH 
-INFOPATH=/usr/local/texlive/2011/texmf/doc/info:$INFOPATH;
-export INFOPATH
 
-\end{verbatim}
+\begin{table}[h]
+\caption{Group 06: Split}
+\centering
+\label{table:Split Test}
+\setlength\extrarowheight{5pt}
+\begin{tabular}{||>{\centering\bfseries}m{0.5in}|>{\centering\arraybackslash}m{5in}||}
+\hline
+\textbf{No} & \textbf{Query} \\ \hline\hline
+     			      1 & on x insert into x1 as select f1 from x where f1 > 3 or f1 < 1 ; insert into x1  as select f1 from x where f1 <=3 and f >=1\\ \hline
+	           				
+ \end{tabular}
+\end{table}
+
+
+
 
 
