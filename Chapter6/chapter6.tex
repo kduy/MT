@@ -2,7 +2,7 @@
 %****************************** Second Chapter *********************************
 %*******************************************************************************
 
-\chapter{Conclusion and Future Work}
+\chapter{Conclusion}
 
 \ifpdf
     \graphicspath{{Chapter06/Figs/Raster/}{Chapter06/Figs/PDF/}{Chapter06/Figs/}}
@@ -11,11 +11,13 @@
 \fi
 
 
-The work described on the thesis has been concerned with  designing  a complete language syntax and implementing its interpreter for FlinkCQL - a continuous query language serving as an application layer of Flink Stream Processing Engine. The first of its contributions is to study the execution model of Flink Stream Processing engine and describe its semantics formally. By understanding its execution model and available features, the complete set of FlinkCQL syntax is designed based on standard native SQL. Users are able to express their essential commands to Flink engine through 6 types of queries: create schema, create stream, select, insert, merge and split. The thesis also proposes and implements an architecture of FlinkCQL query processing. The heart of the processor is a tree-based query interpreter which accepts a query string and source Data streams as inputs. The input data streams are processed and transformed based on a chain of operators which is specified in query string. The experiments show  that the proof-of-concept prototype of FlinkCQL interpreter is able to translate a simple query string in \textit{less than 60 milliseconds} which is really efficient in the sense that the Flink program keep querying and producing outputs  as long as the source data stream is till emitting data. 
+The work described on the thesis has been concerned with  designing  a complete language syntax and implementing its interpreter for FlinkCQL - a continuous query language serving as an application layer of Flink Stream Processing Engine. 
 
+The first of its contributions is to study the execution model of Flink Stream Processing engine and to describe its semantics formally. Based on its tuple-driven model, we propose an extended definition of Data Stream in Flink whose elements logically consist of tuple value , optional application timestamp and system timestamp.  
 
+By understanding its execution model and available features, the complete set of FlinkCQL syntax is designed based on standard native SQL. Users are able to send their essential commands to Flink engine through 6 types of queries: create schema, create stream, select, insert, merge and split. FlinkCQL also supports window operators to observe and investigate the interested recent  data.  
 
-Though we ran experiments successfully on out set of queries, the number of queries is till very limited. We are not able to test all possible queries with limited user-generated queries. Our future work is to build a random query generator (RQG) for coverage testing. RQG can be built using a Finite State Machine model  to decide how to walk through a maximum AST  and generate thousands of valid queries probabilistically. 
+The thesis also proposes and implements an architecture of FlinkCQL query processing. The heart of the processor is a tree-based query interpreter which accepts a query string and source Data streams as inputs. The input data streams are processed and transformed based on a chain of operators which is specified in query string. The experiments show  that the proof-of-concept prototype of FlinkCQL interpreter is able to translate a simple query string in \textit{less than 60 milliseconds} which is really efficient in the sense that the Flink program keeps querying and producing outputs  as long as the source data streams are till emitting data. 
 
 
 

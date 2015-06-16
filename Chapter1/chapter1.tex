@@ -52,15 +52,20 @@ Apache Flink is an open source platform for scalable batch and stream data proce
 
 Flink contains APIs in Java and Scala for analyzing data from batch and streaming data sources, as well as its own optimizer and distributed runtime with custom memory management (Figure~\ref{fig:flink})
 
-However, similar to most of big data frameworks providing such rich APIs for imperative programing only, Flink is still struggling to gain traction from enterprise in relation of interaction UX.  First, users must spend time learning API documentation properly since those APIs are fairly new to them. Therefore, the cycle time to develop products taking longer. Second, given that most big data applications are fairly simple application-wise, a block of API codes might be less optimal to use for most the popular queries. We tackle solving the problem by building a extended version of ubiquitous SQL language on application layer of Flink. Since SQL is so popular, compact, well-design and easy to use, it is the most suitable choice to rely on for our extension. In the first step, this thesis aims to analyze and implement an SQL-extension (FlinkCQL - Flink Continuous Query Language) for Stream Processing Engine in Flink.
+However, similar to most of big data frameworks providing such rich APIs for imperative programing only, Flink is still struggling to gain traction from enterprise in relation of interaction UX.  First, users must spend time learning API documentation properly since those APIs are fairly new to them. Therefore, the cycle time to develop products taking longer. Second, given that most big data applications are fairly simple application-wise, a block of API codes might be less optimal to use for most the popular queries. We tackle solving the problem by building a extended version of ubiquitous SQL language on application layer of Flink. Since SQL is so popular, compact, well-design and easy to use, it is the most suitable choice to rely on for our extension. In the first step, this thesis aims to analyze streaming execution model in order to design and implement an SQL-extension (FlinkCQL - Flink Continuous Query Language) for Flink Stream Processing Engine.
 
 
 \subsection*{Structure}
-We organize the thesis falls into 4 chapters:
+We present our works in 5 following chapters:
 \begin{itemize}
-	\item \textbf{Chapter 2:} \textit{Data Stream Model}. The chapter describes the concept of data stream and what different between data stream and traditional database. 
-	\item \textbf{Chapter 3:} T\textit{he execution semantic of  Flink Stream Processing}. This part helps to understand how the streaming processing engine works under the hood.
-	\item \textbf{Chapter 4:} \textit{linkCQL - Queries over Data Stream}. We fully describe the specification of FlinkCQL syntax , as well as its semantics
-	\item \textbf{Chapter 5:} \textit{Implementations}.
+	\item \textbf{Chapter 2:} \textit{Data Stream Model}. The chapter describes the concept of data stream and what are the differences between data stream and traditional database. 
+	
+	\item \textbf{Chapter 3:} \textit{The execution semantic of  Flink Stream Processing}. This part helps to understand how the streaming processing engine works under the hood.
+	
+	\item \textbf{Chapter 4:} \textit{FlinkCQL - Queries over Data Stream}. We fully describe the specification of FlinkCQL syntax , as well as its semantics.
+	
+	\item \textbf{Chapter 5:} \textit{Implementations.} An tree-based query interpreter is built to translate the input query into a Flink program written in Scala. The program then operates input data streams to produce desired outputs.
+	
+	\item \textbf{Chapter 6:} \textit{Conclusion}
 \end{itemize}
 

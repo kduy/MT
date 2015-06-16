@@ -125,7 +125,6 @@ f: s(TIME, TEMP) \rightarrow TIME + 3600
 
 For further analysis on execution model in Apache Flink, I propose a extend definition of a data stream as:
 
-// TODO: Zoltan: Why this definition is "good", interesting, important, usefull for us? 
 
 \begin{defi}
 	A stream $\mathbb{S}$ is a countably infinite set of elements $s \in \mathbb{S}$. Each  stream element $s: <v, t_{app}, t_{sys}>$, consists of a relational tuple v conforming to a schema $S$, with an \textit{optional} application time value $t_{app} \in \mathbb{T}^*$ with $\mathbb{T}^* = \{-1\} \bigcup \mathbb{T}$ and a timestamp $t_{sys} \in \mathbb{T}$ generated automatically by system, due to the event arrival.
@@ -142,8 +141,6 @@ With the partial function $f$ to extract an application timestamp value from tup
 \end{equation}
 
 
-
- 
 \subsection*{Data Stream Properties} 
 In the data stream model, some of all the input data that are to be operated are not available for random access from disk or memory, but rather arrive as one or more continuous data streams. 
 
@@ -154,11 +151,6 @@ Data Stream may have the following properties~\citep{Golab:2010}:
 	\item They are considered as sequences of records, ordered by arrival time or by another ordered attributed such as generation time which is explicitly specified in schema, that arrive for processing over time instead of being available a priorie.
 	
 	\item They are emitted by a variety of external sources. Therefore, the system has no control over the arrival order or data rate, either within a stream or across multiple streams.
-	
-	// TODO: Zoltan: yes but some considerations should be made not?
-What if the "almost" totality of the data arrives in reverse time order? how to buffer? how to process too fast data rate?
-what does it means too fast?
-etc...
 
 	\item They are produced continually and, therefore, have unbounded, or at least unknown, length. Thus, a DSMS may not know if or when the stream ``ends''. We may set a time-out waiting for new event. Exceeding the time-out, the stream considerably terminated. 
 	

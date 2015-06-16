@@ -406,10 +406,10 @@ The Cross transformation combines two data streams into one stream. It builds al
  	\end{itemize}
  \item Function 
  	\begin{itemize}
-        \item Aggregate Func
-        \item Conversion Func
-       	\item Data and Time Func
-        \item String func
+        \item Aggregate Function
+        \item Conversion Function
+       	\item Data and Time Function
+        \item String Function
  	\end{itemize}
 
 \end{enumerate}
@@ -460,8 +460,7 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 
 \subsection*{Stream-to-Stream}
 \begin{enumerate}
-	\item Projection
-	
+	\item Projection	
 	$\mathcal{M}_{S2S}\sembrack{Select(A_1,A_2,..,A_k)} \\
 		{}\qquad= \lambda_S.\{<(v.A_1,v.A_2,...,v.A_k),\tau_{app},\tau_{sys}>: \forall s<v,\tau_{app},\tau_{sys}>\in S \\
 		{}\qquad\land (A_1,A_2,..,A_k) \subset Schema \}$ 
@@ -472,10 +471,12 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 		{}\qquad= \lambda_S.\{s: \forall s \in S  \land p(s.v) = true \}$ 
 		
 	\item Merge/Union
+	
 	$\mathcal{M}_{S2S}\sembrack{Merge} \\
 		{}\qquad= \lambda_{S_1}\lambda_{S_1}...\lambda_{S_k}.\{s: s \in S_1 \lor s \in S_1 \lor ... \lor s \in S_k \}$ 
 	
 	\item Split
+	
 	$\mathcal{M}_{S2S}\sembrack{Split} \\
 		{}\qquad= \lambda_{S}.\lambda_{f}.\{s: s \in S \land f(s.v) = true \}$ 
 	\item Grouping
@@ -488,6 +489,7 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 \subsection*{Stream-to-Relation}
 \begin{enumerate}
 	\item Application-time based
+	
 	$\mathcal{M}_{S2R}\sembrack{Size\, T\, on\, A} \\
 		{}\qquad= \lambda_S.\lambda_{t_{app}}\{v:  s<v,t_{app}',t_{sys}> \in S  \land t'_{app} = v.A \\
 		{}\qquad max(T-t_{app},0) < t'_{app} \leq t_{app} \}$ 
@@ -508,12 +510,12 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 \subsection*{Relation-to-Relation}
 \begin{enumerate}
 		
-	\item Production
+	\item Cross Join
 	
 	$\mathcal{M}_{R2R}\sembrack{CrossJoin} \\
-		{}\qquad= \lambda_{t_{sys}}.\lambda_{t_{sys}}.\{(e_1,e_2) : e_1 \in E_1 \land e_2 \in E_2 \}$
+		{}\qquad= \lambda_{E_1}.\lambda_{E_2}.\{(e_1,e_2) : e_1 \in E_1 \land e_2 \in E_2 \}$
 		
-	\item Join
+	\item Inner Join
 	
 	$\mathcal{M}_{R2R}\sembrack{InnerJoin(a,b)} \\
 		{}\qquad= \lambda_{E_1}.\lambda_{E_2}.\{(e_1,e_2) : e_1 \in E_1 \land e_2 \in E_2 \land e_1.a = e_2.b \land a \in Schema(e_1) \\
@@ -538,4 +540,4 @@ Querying operators on FlinkCQL falls into 4 classes (Figure~\ref{fig:relation}):
 %		{}\qquad= \lambda_R.\lambda_{t_{sys}}.\{v:  s<v,t_{app},t'_{sys}> \in S  \land 
 %		max(T-t_{sys},0) < t'_{sys} \leq t_{sys} \}$ 
 
-// TODO: Zoltan: some conclusion, reflection
+%// TODO: Zoltan: some conclusion, reflection
