@@ -20,18 +20,17 @@
 \end{figure}
 
 
-Figure~\ref{fig:Architecture} depicts the overall architecture of FlinkCQL query processing layer. It accepts data streams, query string and SQLContext as inputs and return one or more output data streams.
+Figure~\ref{fig:Architecture} depicts the overall architecture of FlinkCQL query processing layer. It accepts data streams, a query string and a SQLContext as inputs and return one or more output data streams.
 \subsection{Input Sources}
-The query processing layer can connect to and process data streams from different data sources like file sources, web sockets, message queues (Apache Kafka, RabbitMQ, Twitter Streaming API …), and also from any user defined data sources. We classify the sources into 2 categories: \textit{Raw source} and predefined \textit{DataStream[T]} with \textit{T} is the type of stream elements.
+The query processing layer can connect to and process data streams from different data sources like file sources, web sockets, message queues (Apache Kafka, RabbitMQ, Twitter Streaming API …), and also from any user-defined data sources. We classify the sources into 2 categories: \textit{Raw source} and predefined \textit{DataStream[T]} with \textit{T} is the type of stream elements.
 
 \subsubsection*{Raw Source}
 
 
-\textbf{Text file stream}: the source stream contains the lines of the files created (or modified) in a given directory. The system continuously monitors the given path, and processes any new files or modifications. The file will be read with the system’s default character set. FlinkCQL expresses the text file stream source via ``SOURCE FILE ( \textit{filePath, delimiter})'', the default delimiter is a comma. The delimiter is used to tokenize string and convert its result into tuples according to its schema
+\quad\textbf{Text file stream}: the source stream contains the lines of the files created (or modified) in a given directory. The system continuously monitors the given path, and processes any new files or modifications. The file will be read with the system’s default character set. FlinkCQL expresses the text file stream source via ``SOURCE FILE ( \textit{filePath, delimiter})'', the default delimiter is a comma. The delimiter is used to tokenize string and convert its result into tuples according to its schema
 
 
-\textbf{Socket text stream}: the source stream contains the strings received from the given socket. Strings are decoded by the system’s default character set. Socket text stream is specified in FlinkCQL as ``SOURCE SOCKET ( \textit{filePath, delimiter})''
-The user can optionally set a delimiter for the same purpose as in Text file stream.
+\textbf{Socket text stream}: the source stream contains the strings received from the given socket. Strings are decoded by the system’s default character set. Socket text stream is specified in FlinkCQL as ``SOURCE SOCKET ( \textit{filePath, delimiter})''. The user can optionally set a delimiter for the same purpose as in Text file stream.
 
 
 \textbf{Message queue connectors:} There are pre-implemented connectors for a number of popular message queue services. Connectors provide an interface for accessing data from various third party sources (message queues). Currently three connectors are natively supported, namely Apache Kafka, RabbitMQ and the Twitter Streaming API. In the recent prototype of FlinkCQL, we have not designed any syntax for those connectors due to lacking of testing facilities. However, in the next prototype, we could extend its syntax at ease.
@@ -58,7 +57,7 @@ Recall the example in ~\ref{query:createStream} to create schema and stream of `
 	SOURCE SOCKET ("98.138.253.109", 2000)
 \end{lstlisting}
 
-``StockTick'' is the Stream used inside FlinkCQL query. It is entitled to ``StockTickSchema'' and mapped to a real \textit{DataStream[Row]} which is derived from the socket text stream. The correlation between Stream and Schema is expressed in Figure~\ref{fig:SQLContext}. Be aware that the concept of Stream in FlinkSQL and DataStream in Flink is not identical. In fact, a Stream in FlinkSQL is a name to represent a \textit{DataStream[T]} in Flink.
+``StockTick'' is the Stream used inside FlinkCQL query. It is entitled to ``StockTickSchema'' and mapped to a real \textit{DataStream[Row]} which is derived from the socket text stream. The correlation between Stream and Schema is expressed in Figure~\ref{fig:SQLContext}. Be aware that the concept of \textit{Stream} in FlinkSQL and \textit{DataStream} in Flink is not identical. In fact, a \textit{Stream} in FlinkSQL is a name to represent a \textit{DataStream[T]} in Flink.
 
 All Stream-Schema-DataStream relationships are stored in 3 dictionaries of \textit{SQLContext}~(Figure~\ref{fig:Architecture}). 
 Stream and Schema are unique but many Stream can share a Schema. And a Stream is mapped to a DataStream[T]. When users send out some further queries, query processing framework will lookup \textit{SQLContext} to decide which Stream-Schema is specified to generate an precise snippet of code.
@@ -71,7 +70,7 @@ Stream and Schema are unique but many Stream can share a Schema. And a Stream is
 \end{figure}
 
 \subsection{Data Manipulation Processing}
-Data Manipulation Processing is used to process Data Manipulation Queries such as \textit{SELECT, MERGE, SPLIT, INSERT}. These queries specify which operators to process on given Streams and its Fields. First, system will first look up its SQLContext to retrieve the actual input \textit{DataStream[Row]} according to the Streams. Second, Operators and Schemas are together to decide how to transform input DataStreams to a new one. The output of processing is either one or more Streams which are updated into SQLContext or a DataStream of tuple. This DataStream of tuple can be consumed to create other Stream via \textit{CREATE STREAM} query. For examples, the output of \textit{SELECT} query is a DataStream of tuple but the outputs of \textit{SPLIT} query are more than one Stream~(along with its Schema and DataStream[Row]).
+Data Manipulation Processing is used to process Data Manipulation Queries such as \textit{SELECT, MERGE, SPLIT, INSERT}. These queries specify which operators to process on given Streams and its Fields. First, system will first look up its SQLContext to retrieve the actual input \textit{DataStream[Row]} according to the \textit{Streams}. Second, Operators and \textit{Schemas} are together to decide how to transform input \textit{DataStreams} to a new one. The output of processing is either one or more Streams which are updated into \textit{SQLContext} or returned as a DataStream of tuple. This DataStream of tuple can be consumed to create other Stream via \textit{CREATE STREAM} query. For examples, the output of \textit{SELECT} query is a DataStream of tuple but the outputs of \textit{SPLIT} query are more than one \textit{Stream}~(along with its \textit{Schema} and \textit{DataStream[Row]}).
 
 \section{FlinkCQL Query Interpreter}
 \begin{figure}[h!] 
@@ -82,7 +81,7 @@ Data Manipulation Processing is used to process Data Manipulation Queries such a
 \end{figure}
 
 
-Flink Stream Processing is offering a rich set of API to deal with one or  multiple input DataStream[T]. Our goal is to build an extension which accepts FlinkCQL query strings as commands and translate the commands to  corresponding programs constructed with Flink's APIs. Thus we are simply required to build a interpreter instead of a compiler from scratch. For this purpose, I have implemented a tree-based interpreter~\citep{Parr:2009} to process FlinkCQL queries. The idea is that the query interpreter executes program by constructing an abstract syntax tree~(AST) from the input query string and walking through the tree to generate a executable Flink program. More specifically, AST is a form of intermediate representation of the hierarchical syntactical structure of the source program written in query.  
+Flink Stream Processing is offering a rich set of API to deal with one or  multiple input \textit{DataStream[T]}. Our goal is to build an extension which accepts FlinkCQL query strings as commands and translate the commands to  corresponding programs constructed with Flink's APIs. Thus we are simply required to build a interpreter instead of a compiler from scratch. For this purpose, I have implemented a tree-based interpreter~\citep{Parr:2009} to process FlinkCQL queries. The idea is that the query interpreter executes program by constructing an abstract syntax tree~(AST) from the input query string and walking through the tree to generate a executable Flink program. More specifically, AST is a form of intermediate representation of the hierarchical syntactical structure of the source program written in query.  
 	
 
 The interpretation proceed through a series of well-defined phrases (Figure~\ref{fig:QueryProcessing}). Each phrase transforms or extracts information of use from the output of previous phrase and return a result which is a input of next phrase. In first proof-of-concept prototype, we build a pipeline consisting of 4 steps:
@@ -91,7 +90,7 @@ The interpretation proceed through a series of well-defined phrases (Figure~\ref
 
 	\item \textbf{Rewriting} is to modify a sub-tree of AST to a more compact, optimal AST without changing the semantic of program.
 	
-	\item \textbf{Resolving:} It is possible that two or more streams, which are specified in query,  shares the same Schema. Thus, there is a potential ambiguity between two fields which have a identical name but belong to different stream. This phrase is to figure out to which fields refers. It is clear that we cannot generate code from an ambiguous AST.
+	\item \textbf{Resolving:} It is possible that two or more streams, which are specified in query,  shares the same Schema. Thus, there is a potential ambiguity between two fields which have a identical name but belong to different streams. This phrase is to figure out to which fields refers. It is clear that we cannot generate code from an ambiguous AST. The output of this step is a \textit{Statement[Stream]} once we resolve all ambiguous Field-Stream relationships.
 	
 	\item \textbf{Code generation}: In addition to a compact and unambiguous AST, the interpreter also lookup Stream-Schema information from SQLContext to generate a Flink program based on pre-defined translation rules. Last but not at least, we need the Flink stream execution environment to execute our generated code.
 	
@@ -129,14 +128,14 @@ In FlinkCQL, we utilize several token classes which described in Table~\ref{tabl
 					floatingPointNumber	& represented approximately to a fixed number of significant digits (the significand) and scaled using an exponent. For example, $3E-5$			               \\ \hline		%-?(\d+(\.\d*)?|\d*\.\d+)([eE][+-]?\d+)?[fFdD]?						
 					stringLiteral		& Single quotes enclosing a sequence of string. For example: 'IBM', 'AAPL'			 \\ \hline
 					Whitespace		& a non-empty sequence of blanks, newlines, and tabs.	 		                      \\ \hline								
-					Other	& addition strings to make up the query. For example: (, ), . , {, }		                     \\ \hline							           							           							           							           
+					Other	& addition strings to make up the query. For example: ``('', `` )'', ``.'' , {``,'' }		                     \\ \hline							           							           							           							           
 \end{tabular}
 \end{table}
 
 The regex pattern of these tokens are supported in \textit{JavaTokenParsers} class in Scala language. The output of this steps is a sequence of tokens. For examples, the list of tokens derived from the previous query sample (ignoring all Whitespace tokens):
 \begin{lstlisting}
 	<keyword, "SELECT">, <identifier, "s">, <other, ".">,
-	<identifier, "Quantity">, <other, "*">, 
+	<identifier, "Quantity">, <identifier, "*">, 
 	<identifier, "Price">, <other, ",">, 
 	<identifier, "StockTick">, <other, ".">,
 	<identifier, "Symbol">, <keywork, "FROM">,
@@ -147,7 +146,7 @@ The regex pattern of these tokens are supported in \textit{JavaTokenParsers} cla
 Oviously, scanner helps reduce the size of the input (there are many more characters than tokens) and remove extraneous characters like white space. Thus  , scanning is considered a pre-processing step to simplify the task of the parser.
 
 \textbf{Parser} helps organize the input tokens into an AST. We build up an AST for each query using Packrat Parser which is available in Scala Parser Combinators. 
-In short, Packrat Parsing is a technique for implementing backtracking,recursive-descent parsers, with the advantage that it guarantees unlimited lookahead and a \textit{linear} parse time. Using this technique, left recursive grammars can also be accepted.
+In short, Packrat Parsing is a technique for implementing backtracking, recursive-descent parsers, with the advantage that it guarantees unlimited lookahead and a \textit{linear} parse time. Using this technique, left recursive grammars can also be accepted.
 
 To produce a complete meaningful AST using Scala parser combinators, we goes through a procedure of 4 substeps:
 \begin{itemize}
@@ -157,7 +156,7 @@ To produce a complete meaningful AST using Scala parser combinators, we goes thr
 Based on the EBNF grammars of FlinkCQL which are described mostly in session~\ref{language}, we write equivalent executable grammars in Scala syntax with helps of combinators:
 \begin{itemize}
 	\item $p_1 \sim p_2$: sequencing combinator: must match $p_1$ followed by $p_2$. For example, \textit{Projection} clause is followed by \textit{From} clause
-	\item $p_1$ | $p_2$: alternation combinator: must match either $p_1$ or $p_2$, with preference given to $p_1$. For example, window policy can be either time-based or count-based.
+	\item $p_1$ | $p_2$: alternation combinator: must match either $p_1$ or $p_2$, with preference given to $p_1$. For example, a window policy can be either time-based or count-based.
 	\item $opt(p_1)$ : optionality combinator: may match $p_1$ or not. For example, \textit{Where} clause is optional in \textit{Select} statement.
 	\item $rep(p_1)$ : repetition combinator: matches any number of repetitions of $p_1$. For instance: there is one or more entries in \textit{Projection} clause.
 \end{itemize} 
@@ -166,7 +165,7 @@ In our processor, we define a grammar for \textit{Select} statement as :
 \begin{lstlisting}
 lazy val selectStmtSyntax = projectionClause ~ fromClause ~ opt(whereClause) ~ opt(groupByClause)
 \end{lstlisting}
-It means that \textit{projectionClause} is followed by a \textit{fromClause}, an optional \textit{whereClause} and a optional \textit{groupByClause} in order.
+It means that \textit{projectionClause} is followed by a \textit{fromClause}, an optional \textit{whereClause} and an optional \textit{groupByClause} in order.
 
 The topmost abstraction of the FlinkCQL grammar is \textit{Statement}. It can express either \textit{Select}, \textit{Create schema}, \textit{Create stream}, \textit{Merge}, \textit{Insert}, \textit{Split} query syntax.
 \begin{lstlisting}
@@ -194,7 +193,7 @@ As we mentioned above, the topmost abstraction of FlinkCQL is \textit{Statement}
 	case class Split[T](...) extends Statement[T]
 \end{lstlisting}
 
-Each inherited class of \textit{Statement} contain its attributes as child nodes in the whole AST model. Each of these attribute may contains several child notes as well. For example, each \textit{Entry} in Select's projection clause is composed of its name, alias name and an expression
+Each inherited class of \textit{Statement} contain its attributes as child nodes in the whole AST model. Each of these attribute may contains several child notes as well. For example, each \textit{Entry} in Select's projection clause is composed of its name, alias name and an expression:
 
 \begin{lstlisting}
 	case class Entry[T](name: String, alias: Option[String], expr: Expr[T])
@@ -249,11 +248,11 @@ From (select Symbol,Price From StockTick) [Size 3] as s
 
 In the first query , its subquery will return a Windowed Stream which is not supported. Therefore the query is invalid. In the second query, its subquery return a concrete DataStream which is acceptable.
 
-The change we made on AST structure of the first query is to move the window of the subquery to its upper-level (From clause). Thus,in the new structure (query 2), the subquery will produce a \textit{DataStream} of \textit{(Symbol, Price)} whereas the upper-level will process on a windowed stream with size of 3. 
+The change we made on AST structure of the first query is to move the window of the subquery to its upper-level (From clause). Thus, in the new structure (query 2), the subquery will produce a \textit{DataStream} of \textit{(Symbol, Price)} whereas the upper-level will process on a windowed stream with size of 3. 
 
 \subsection{Resolving}
-Looked at the Figure~\ref{fig:QueryProcessing} again,  the output of last 2 phrases is a \textit{Statement} object with type parameter is \textit{Optional[String]}.
-It indicates that there are some potential fields/columns whose streams are not specified in AST. In other words, the value of \textit{stream} is None.
+Looked at the Figure~\ref{fig:QueryProcessing} again,  the output of last 2 phrases is a \textit{Statement} object with type parameter \textit{T} is \textit{Optional[String]}.
+It indicates that there are some potential fields/columns whose streams are not precisely specified in AST. In other words, the value of \textit{stream} is None or a stream alias.
 \begin{lstlisting}
 	case class Field[T](name: String, stream : T)
 \end{lstlisting}
@@ -290,7 +289,7 @@ Supposed that
 \begin{equation}
 	\overline{X} = Generate(X)
 \end{equation}
- with $X$ is object abstraction denoting a subtree of a AST and $\overline{X}$ is an equivalent block of Scala AST code generated from $X$
+ with $X$ is object abstraction denoting a subtree of a query AST and $\overline{X}$ is an equivalent block of Scala AST code generated from $X$.
 
 \subsubsection*{Select statement Generation}
 Select object has 4 attributes: Projection \textit{proj}, StreamReference \textit{streamRef}, Where \textit{w} and GroupBy \textit{by}. \textit{Where} and \textit{Groupby} attribute object are optional. 
@@ -306,13 +305,15 @@ StreamReference object has up to 3 attributes :  Stream \textit{stream}, window 
 \end{lstlisting}
 
 However, we can generate a StreamReference object from Join object in condition that WindowSpecification object $w_1$ and $w_2$ specify a same time-based window. Otherwise, processor is not able to generate code of Join object due to Flink's functionality constraint.
-\begin{equation}
-	\textrm{j = StreamRef(}s_1,\, w_1,\, \textrm{Join(}s_2,\, w_2, \textrm{joinCondition))}
-\end{equation}
+\begin{align}
+	\textrm{j} = \textrm{Join(}s_2,\, w_2, \textrm{joinCondition)} \\
+	\textrm{jointStreamRef = StreamRef(}s_1,\, w_1,\, \textrm{Join(}s_2,\, w_2, \textrm{joinCondition))}
+\end{align}
 
-\begin{equation}
-StreamReference(stream, ws) = \overline{  s_1}\textrm{.join(}\overline{s_2})\textrm{.onWindow(}\overline{s_2}\textrm{).where(}\overline{joinCondition}\textrm{)}
-\end{equation}
+\begin{multline}
+StreamReference(stream, ws) = \overline{jointStreamRef} \\
+= \overline{  s_1}\textrm{.join(}\overline{s_2})\textrm{.onWindow(}\overline{s_2}\textrm{).where(}\overline{joinCondition}\textrm{)}
+\end{multline}
 in which, ``join'', ``onWindow'', ``where'' are Flink's functions applied to  \textit{DataStream[Row]} object generated from $s_1$
 
 Therefore, we could assume that
@@ -322,7 +323,7 @@ Therefore, we could assume that
 
 There are 2 possible scenarios for optional WindowSpecification object \textit{ws}:
 \begin{enumerate}
-	\item \textbf{\textit{ws} is undeclared}. It means that processor does query on a \textit{DataStream[Row]}.  The generated block of Flink code for Select object $s$ is defined as
+	\item \textbf{\textit{ws} is undefined}. It means that processor does query on a concrete \textit{DataStream[Row]}.  The generated block of Flink code for Select object $s$ is defined as
 	
 	\begin{equation}
 	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).map(\overline{proj})
@@ -337,7 +338,7 @@ It means that processor does query on a \textit{DataStream[Row]} discretized by 
 
 
 \begin{multline}
-	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).groupBy(\overline{by}).map(\overline{proj})	.window(\overline{size}).every(\overline{every}) \\
+	\overline{s}\, =\,\overline{stream} .filter(\overline{w}).groupBy(\overline{by})	.window(\overline{size}).every(\overline{every}) \\
 	.groupBy(\overline{partitioned}).mapWindow(\overline{proj}).flatten
 \end{multline} 
 
@@ -447,7 +448,7 @@ The third query is to observe the tax which owners need to pay for their cars. T
 Though we ran experiments successfully on our set of queries, the number of queries is till very restricted and objective. We are not able to test all possible queries with limited user-generated queries. Our future work is to build a Random Query Generator~(RQG) for coverage and functional testing. RQG generates thousands of random queries based on SQL templates the queries must conform to. The idea is that we build a Finite State Machine model from the templates and decide how to walk around, expand an AST and generate numerous valid queries  probabilistically. 
 
 For the last phrases of Code Generation, we have employed Scala \textit{Macros} technique to gradually construct the Scala AST code which is executed at \textit{compile-time}. However, there is a disadvantage 
-when applying Macro to generate Flink program. Some  Flink functions required informations extracted from SQLContext at runtime. For example, ``mapWindow'' function is applied on a \textit{WindowStream} to  transforms a window to other type of window. We able to use ``mapWindow'' to reduce the window to a tuple (using aggregation function) which may fulfil the projection clause of \textit{Select} query. However, the parameter of this function is a anonymous function which required  to specify its input type and output type. Although the output type could be deduced by AST and Schema in SQLContext, we are unable to extract a specific SQLContext information at compile-time. Thus, we could not generate code for ``mapWindow'' parameters. One of potential solution is to generate and execute code at runtime using \textit{ToolBox Api}. One can deduce the type of the output, plug it into Scala AST of mentioned anonymous function and generate this function at runtime. ``mapWindow'' may work in this case. 
+when applying Macro to generate Flink program. Some  Flink functions required informations extracted from SQLContext at runtime. For example, ``mapWindow'' function is applied on a \textit{WindowedStream} to  transforms a window to other type of window. We able to use ``mapWindow'' to reduce the window to a tuple (using aggregation function) which may fulfill the projection clause of \textit{Select} query. However, the parameter of this function is a anonymous function which required  to specify its input type and output type. Although the output type could be deduced by AST and Schema in SQLContext, we are unable to extract a specific SQLContext information at compile-time. Thus, we could not generate code for ``mapWindow'' parameters. One of potential solution is to generate and execute code at \textit{runtime} using \textit{ToolBox Api}. One can deduce the type of the output, plug it into Scala AST of mentioned anonymous function and generate this function at \textit{runtime}. ``mapWindow'' may work in this case. 
 
-In conclusion, we may use runtime compilation approach to generate the Scala AST. Moreover, a Random Query Generator is needed in the purpose of testing.
+In conclusion, we may use runtime compilation approach to generate the Scala AST. In addition, a Random Query Generator is needed in the purpose of testing.
 

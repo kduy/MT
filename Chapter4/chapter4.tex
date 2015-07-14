@@ -1,7 +1,6 @@
 %*******************************************************************************
 %****************************** Second Chapter *********************************
 %*******************************************************************************
-
 \chapter{FlinkCQL- Queries over Data Stream}
 
 \ifpdf
@@ -92,7 +91,7 @@ Sorting, joining or aggregation such as SUM, COUNT, MIN, MAX, AVG are examples o
 
 In contrast, non-blocking operators, which can produce some tuples of output before it has detected the end of input, can be applied on data stream. Some of non-blocking operators such as projection, selection, partition, merge, split stream, can process new tuples on-the-fly without storing any temporary results~(stateless).
 
-However, it would be a huge drawback if blocking operators is missing in query language since they are very common for simple analytics. Fortunately, since a window contains a finite set of tuples, we are able to implement a blocking operators on each window in the lieu of the whole stream. 
+However, it would be a huge drawback if blocking operators are missing in query language since they are very common for simple analytics. Fortunately, since a window contains a finite set of tuples, we are able to implement a blocking operators on each window in the lieu of the whole stream. 
 
 In short, blocking operators are possible to query on Windows only  while non-blocking operators can be applied on both concrete data streams or windows. 
 	
@@ -100,7 +99,6 @@ In short, blocking operators are possible to query on Windows only  while non-bl
 
 I propose FlinkCQL and describe its syntax on session~\ref{language} then its semantic  on session~\ref{semantic}
 
-// TODO: stronger statement
 
 
 %//TODO
@@ -155,7 +153,7 @@ I propose FlinkCQL and describe its syntax on session~\ref{language} then its se
 
 \subsection{Data Type}
 
-FlinkCQL supports numbers of data types including numeric types (\textit{Byte}, \textit{Short}, \textit{Int}, \textit{Long}, \textit{Float}, \textit{Double}), \textit{Boolean}  type, string types (\textit{Char}, \textit{String}), deta type (\textit{Datetime}) with detailed descriptions in (Table~\ref{table:Data Type})
+FlinkCQL supports numbers of data types including numeric types (\textit{Byte}, \textit{Short}, \textit{Int}, \textit{Long}, \textit{Float}, \textit{Double}), \textit{Boolean}  type, string types (\textit{Char}, \textit{String}), date type (\textit{Datetime}) with detailed descriptions in (Table~\ref{table:Data Type})
 
 
 \begin{table}[h]
